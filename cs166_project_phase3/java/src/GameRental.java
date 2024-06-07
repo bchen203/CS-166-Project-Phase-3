@@ -562,22 +562,55 @@ public class GameRental {
          List<Integer> numCopies = new ArrayList<>();
          for (int i = 0; i < numGames; i++) {
             System.out.println("Please enter gameID: ");
-            gameIDs.add(in.readLine());
+            String gameID = in.readLine();
+            boolean validGame = validateGameID(esql, gameID);
+            while(!validGame) {
+               System.out.println("Invalid gameID");
+               System.out.println("Please enter gameID: ");
+               gameID = in.readLine();
+               validGame = validateGameID(esql, gameID);
+            }
+            gameIDs.add(gameID);
             System.out.println("Please enter number of copies: ");
-            numCopies.add(Integer.parseInt(in.readLine()));
+            String copies = in.readLine();
+            boolean validCopies = !copies.isEmpty();
+            for (int j = 0; j < copies.length(); j++) {
+               if (!Character.isDigit(copies.charAt(j))) {
+                  validCopies = false;
+               }
+            }
+            while(!validCopies) {
+               System.out.println("Invalid input");
+               System.out.println("Please enter number of copies: ");
+               copies = in.readLine();
+               for (int j = 0; j < copies.length(); j++) {
+                   validCopies = Character.isDigit(copies.charAt(j));
+               }
+            }
+            numCopies.add(Integer.parseInt(copies));
          }
 
+         String query = "SELECT price FROM CATALOG WHERE gameID = '" + gameIDs.get(0) + "'";
+         for (int i = 1; i < numGames; i++) {
+            // retrieve game price
+            query += " OR gameID = '" + gameIDs.get(i) + "'";
+         }
+         List<List<String>> priceResult = esql.executeQueryAndReturnResult(query);
+         Double totalPrice = 0.0;
+         for (int i = 0; i < numGames; i++) {
+            totalPrice += (numCopies.get(i) * Double.parseDouble(priceResult.get(i).get(0)));
+         }
          // summarize order
          System.out.println("Items in Order");
          System.out.println("--------------");
-         System.out.println("gameID  \t numCopies");
+         System.out.println("gameID  \tnumCopies\tPrice");
          Integer totalCopies = 0;
          for(int i = 0; i < gameIDs.size(); i++) {
-            System.out.println(gameIDs.get(i) + "\t" + numCopies.get(i));
+            System.out.println(gameIDs.get(i) + "\t    " + numCopies.get(i) + "\t\t" + priceResult.get(i).get(0));
             totalCopies += numCopies.get(i);
          }
-         System.out.println("Total: numGames = " + numGames + " totalCopies = " + totalCopies);
-
+         System.out.println("Total: numGames = " + numGames + ", totalCopies = " + totalCopies);
+         System.out.println("Total Cost: $" + totalPrice);
 
          System.out.println("Order placed successfully");
          System.gc();
@@ -613,6 +646,23 @@ public class GameRental {
       return false;
    }
 
+   public static boolean validateGameID(GameRental esql, String gameID){
+      try{
+         if (gameID.length() == 8) {
+            if (gameID.startsWith("game")) {
+               // check if gameID exists in catalog
+               String availableUser = "SELECT EXISTS (Select 1 FROM Catalog WHERE gameID = '" + gameID + "' LIMIT 1)";
+               List<List<String>> gameResult = esql.executeQueryAndReturnResult(availableUser);
+               return gameResult.get(0).contains("t"); // true if gameID found in database
+            }
+            return false;
+         }
+         return false;
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+      return false;
+   }
    // functions for updating profile
    public static void changePassword(GameRental esql, String user) {
       try{
@@ -650,7 +700,6 @@ public class GameRental {
                }
             }
          }
-         return;
       }catch(Exception e) {
          System.err.println(e.getMessage());
       }
