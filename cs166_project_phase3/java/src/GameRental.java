@@ -406,34 +406,17 @@ public class GameRental {
          String phone = in.readLine();
 
          // validate phone number
-         boolean validPN = false;
+         boolean validPN = validatePhoneNumber(phone);
+
          while(!validPN) {
-            if (phone.length() == 12) { // correct phone number length
-               for(int i = 0; i < 12; i++) { // correct phone number formatting
-                  if (i == 3 || i == 7) { // check hyphens are in correct locations
-                     if (phone.charAt(i) != '-') {
-                        break;
-                     }
-                  }
-                  else {
-                     if (!Character.isDigit(phone.charAt(i))) {
-                        break;
-                     }
-                     if (i == 11) {
-                        validPN = true;
-                     }
-                  }
-               }
-               if (validPN) {
-                  break;
-               }
-            }
             System.out.println("\nInvalid Phone Number");
             System.out.println("Please enter your phone number: ");
             phone = in.readLine();
-         }
 
-         String update = "INSERT INTO Users Values('" + user + "', '" + password + "', 'customer', NULL, " + phone + ", 0)";
+            validPN = validatePhoneNumber(phone);
+         }
+         String countryCode = "+1-";
+         String update = "INSERT INTO Users Values('" + user + "', '" + password + "', 'customer', NULL, " + countryCode + phone + ", 0)";
 
          esql.executeUpdate(update);
          System.out.println("Account Created Successfully");
@@ -481,12 +464,16 @@ public class GameRental {
 
    public static void viewProfile(GameRental esql, String user) {
       try{
-         String profile = "SELECT login, favGames, phoneNum, numOverDueGames FROM USERS WHERE login = '" + user + "'";
+          String query = "SELECT login, favGames, phoneNum, numOverDueGames FROM USERS WHERE login = '" + user + "'";
 
-         // reformat output for profile
-         esql.executeQueryAndPrintResult(profile);
+          List<List<String>> profile = esql.executeQueryAndReturnResult(query);
+          System.out.println("Username: " + profile.get(0).get(0));
+          System.out.println("Favorite Games: " + profile.get(0).get(1));
+          System.out.println("Phone Number: " + profile.get(0).get(2));
+          System.out.println("# of Overdue Games: " + profile.get(0).get(3));
+
       }catch(Exception e) {
-         System.err.println(e.getMessage());
+          System.err.println(e.getMessage());
       }
    }
    public static void updateProfile(GameRental esql, String user) {
@@ -498,13 +485,13 @@ public class GameRental {
                             "              Update Profile      	               \n" +
                             "*******************************************************\n");
 
-            System.out.println("PROFILE SETTINGS\n");
-            System.out.println("----------------\n");
+            System.out.println("PROFILE SETTINGS");
+            System.out.println("----------------");
 
-            System.out.println("1. Change Password\n");
-            System.out.println("2. Change Phone Number\n");
-            System.out.println("3. Change Favorite Games\n");
-            System.out.println("9. Return to Main Menu\n");
+            System.out.println("1. Change Password");
+            System.out.println("2. Change Phone Number");
+            System.out.println("3. Change Favorite Games");
+            System.out.println("9. Return to Main Menu");
 
             switch (readChoice()) {
                case 1: changePassword(esql, user); break;
@@ -570,6 +557,25 @@ public class GameRental {
    public static void updateCatalog(GameRental esql) {}
    public static void updateUser(GameRental esql) {}
 
+   // input validation
+   public static boolean validatePhoneNumber(String phone) {
+      if (phone.length() == 12) { // correct phone number length
+         for(int i = 0; i < 12; i++) { // correct phone number formatting
+            if (i == 3 || i == 7) { // check hyphens are in correct locations
+               if (phone.charAt(i) != '-') {
+                  return false;
+               }
+            }
+            else {
+               if (!Character.isDigit(phone.charAt(i))) {
+                  return false;
+               }
+            }
+         }
+         return true;
+      }
+      return false;
+   }
 
    // functions for updating profile
    public static void changePassword(GameRental esql, String user) {
@@ -621,19 +627,34 @@ public class GameRental {
          boolean pnMatch = false;
          while (!pnMatch) {
             System.out.println("Please enter new phone number (123-456-7890): ");
-            String newPN1 = in.readLine();
-            System.out.println("Please confirm phone number: ");
-            String newPN2 = in.readLine();
+            String phone1 = in.readLine();
+            boolean validPN = validatePhoneNumber(phone1);
+            while (!validPN) {
+               System.out.println("Invalid phone number");
+               System.out.println("Please enter your phone number (123-456-7890): ");
+               phone1 = in.readLine();
+               validPN = validatePhoneNumber(phone1);
+            }
+            System.out.println("Please confirm your phone number: ");
+            String phone2 = in.readLine();
+            validPN = validatePhoneNumber(phone2);
+            while (!validPN) {
+               System.out.println("Invalid phone number");
+               System.out.println("Please confirm your phone number: ");
+               phone2 = in.readLine();
+               validPN = validatePhoneNumber(phone2);
+            }
 
             // new phone number confirmed, update in database
-            if (newPN1.equals(newPN2)) {
+            if (phone1.equals(phone2)) {
                pnMatch = true;
+               String countryCode = "+1-";
                System.out.println("Updating phone number...");
-               String update = "UPDATE Users SET phoneNum = '" + newPN1 + "' WHERE login = '" + user +"'";
+               String update = "UPDATE Users SET phoneNum = '" + countryCode + phone1 + "' WHERE login = '" + user +"'";
                esql.executeUpdate(update);
 
                System.out.println("Phone number changed successfully");
-               System.out.println("New phone number: " + newPN1);
+               System.out.println("New phone number: " + phone1);
 
             }
             // allow user to retry changing password
@@ -651,7 +672,6 @@ public class GameRental {
                }
             }
          }
-         return;
       }catch(Exception e) {
          System.err.println(e.getMessage());
       }
@@ -679,7 +699,6 @@ public class GameRental {
 
          System.out.println("Favorite games changed successfully");
          System.out.println("Favorite Games: " + games);
-         return;
       }catch(Exception e) {
          System.err.println(e.getMessage());
       }
