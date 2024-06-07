@@ -21,9 +21,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ArrayList;
 import java.lang.Math;
+import java.time.*;
 
 /**
  * This class defines a simple embedded SQL utility class that is designed to
@@ -611,6 +613,18 @@ public class GameRental {
          }
          System.out.println("Total: numGames = " + numGames + ", totalCopies = " + totalCopies);
          System.out.println("Total Cost: $" + totalPrice);
+
+         DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+         String orderTS = LocalDateTime.now().format(f);
+         LocalDate dueDate = LocalDate.now().plusDays(30);
+         String rentalOrder = "INSERT INTO RentalOrder VALUES(gamerentalorder5000, " +
+                 user + ", " +
+                 totalCopies + ", " +
+                 totalPrice + ", " +
+                 orderTS + ", " +
+                 dueDate + ")";
+         System.out.println(rentalOrder);
+
 
          System.out.println("Order placed successfully");
          System.gc();
