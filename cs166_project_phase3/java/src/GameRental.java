@@ -290,7 +290,7 @@ public class GameRental {
                    case 1: viewProfile(esql, authorisedUser); break;
                    case 2: updateProfile(esql, authorisedUser); break;
                    case 3: viewCatalog(esql); break;
-                   case 4: placeOrder(esql); break;
+                   case 4: placeOrder(esql, authorisedUser); break;
                    case 5: viewAllOrders(esql); break;
                    case 6: viewRecentOrders(esql); break;
                    case 7: viewOrderInfo(esql); break;
@@ -548,7 +548,43 @@ public class GameRental {
          System.err.println(e.getMessage());
       }
    }
-   public static void placeOrder(GameRental esql) {}
+   public static void placeOrder(GameRental esql, String user) {
+      try {
+         System.out.println(
+                 "\n\n*******************************************************\n" +
+                         "              Place Order      	               \n" +
+                         "*******************************************************\n");
+
+         System.out.println("How many different games would you like to order?");
+         int numGames = Integer.parseInt(in.readLine());
+
+         List<String> gameIDs = new ArrayList<>();
+         List<Integer> numCopies = new ArrayList<>();
+         for (int i = 0; i < numGames; i++) {
+            System.out.println("Please enter gameID: ");
+            gameIDs.add(in.readLine());
+            System.out.println("Please enter number of copies: ");
+            numCopies.add(Integer.parseInt(in.readLine()));
+         }
+
+         // summarize order
+         System.out.println("Items in Order");
+         System.out.println("--------------");
+         System.out.println("gameID  \t numCopies");
+         Integer totalCopies = 0;
+         for(int i = 0; i < gameIDs.size(); i++) {
+            System.out.println(gameIDs.get(i) + "\t" + numCopies.get(i));
+            totalCopies += numCopies.get(i);
+         }
+         System.out.println("Total: numGames = " + numGames + " totalCopies = " + totalCopies);
+
+
+         System.out.println("Order placed successfully");
+         System.gc();
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+   }
    public static void viewAllOrders(GameRental esql) {}
    public static void viewRecentOrders(GameRental esql) {}
    public static void viewOrderInfo(GameRental esql) {}
@@ -708,7 +744,7 @@ public class GameRental {
    public static void filterCatalog(GameRental esql, String genre, Double price, String sort) {
       try{
          String filters = "Displaying results for: ";
-         String query = "SELECT gameName, genre, price, description FROM Catalog";
+         String query = "SELECT gameID, gameName, genre, price, description FROM Catalog";
          if (!genre.equals("") && price > 0) {
             query += " WHERE genre = '" + genre + "' AND price < " + price;
             filters += "Genre = \" " + genre + "\", Price < " + price;
