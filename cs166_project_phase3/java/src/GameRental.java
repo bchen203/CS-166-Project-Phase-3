@@ -466,12 +466,15 @@ public class GameRental {
    public static void viewProfile(GameRental esql, String user) {
       try{
           String query = "SELECT login, favGames, phoneNum, numOverDueGames FROM USERS WHERE login = '" + user + "'";
-
           List<List<String>> profile = esql.executeQueryAndReturnResult(query);
+          System.out.println(
+                 "\n\n*******************************************************\n" +
+                         "              User Profile      	               \n" +
+                         "*******************************************************\n");
           System.out.println("Username: " + profile.get(0).get(0));
           System.out.println("Favorite Games: " + profile.get(0).get(1));
           System.out.println("Phone Number: " + profile.get(0).get(2));
-          System.out.println("# of Overdue Games: " + profile.get(0).get(3));
+          System.out.println("# of Overdue Games: " + profile.get(0).get(3) + "\n") ;
 
       }catch(Exception e) {
           System.err.println(e.getMessage());
@@ -557,7 +560,15 @@ public class GameRental {
                          "*******************************************************\n");
 
          System.out.println("How many different games would you like to order?");
-         int numGames = Integer.parseInt(in.readLine());
+         String num = in.readLine();
+         boolean validNum = validateInteger(num);
+         while(!validNum) {
+            System.out.println("Invalid input");
+            System.out.println("How many different games would you like to order?");
+            num = in.readLine();
+            validNum = validateInteger(num);
+         }
+         int numGames = Integer.parseInt(num);
 
          // retrieve gameIDs and number of copies for rental order
          List<String> gameIDs = new ArrayList<>();
@@ -575,19 +586,12 @@ public class GameRental {
             gameIDs.add(gameID);
             System.out.println("Please enter number of copies: ");
             String copies = in.readLine();
-            boolean validCopies = !copies.isEmpty();
-            for (int j = 0; j < copies.length(); j++) {
-               if (!Character.isDigit(copies.charAt(j))) {
-                  validCopies = false;
-               }
-            }
+            boolean validCopies = validateInteger(copies);
             while(!validCopies) {
                System.out.println("Invalid input");
                System.out.println("Please enter number of copies: ");
                copies = in.readLine();
-               for (int j = 0; j < copies.length(); j++) {
-                   validCopies = Character.isDigit(copies.charAt(j));
-               }
+               validCopies = validateInteger(copies);
             }
             numCopies.add(Integer.parseInt(copies));
          }
@@ -605,7 +609,7 @@ public class GameRental {
          }
 
          // summarize rental order
-         System.out.println("Items in Order");
+         System.out.println("\nItems in Order");
          System.out.println("--------------");
          System.out.println("gameID  \tnumCopies\tPrice");
          Integer totalCopies = 0;
@@ -628,8 +632,6 @@ public class GameRental {
                  totalPrice + ", '" +
                  orderTS + "', '" +
                  dueDate + "')";
-         System.out.println(rentalOrder);
-
          esql.executeUpdate(rentalOrder);
 
          // create unique tracking info
@@ -641,8 +643,6 @@ public class GameRental {
                  "'Los Angeles,CA', " +
                  "'USPS', '" +
                  orderTS + "')";
-         System.out.println(trackingInfo);
-
          esql.executeUpdate(trackingInfo);
 
          String gamesInOrder = "INSERT INTO GamesInOrder VALUES";
@@ -652,11 +652,9 @@ public class GameRental {
                gamesInOrder += ", ";
             }
          }
-         System.out.println(gamesInOrder);
          esql.executeUpdate(gamesInOrder);
 
-
-         System.out.println("Order placed successfully");
+         System.out.println("Order placed successfully\n");
          System.gc();
       }catch(Exception e) {
          System.err.println(e.getMessage());
@@ -704,6 +702,18 @@ public class GameRental {
          return false;
       }catch(Exception e) {
          System.err.println(e.getMessage());
+      }
+      return false;
+   }
+
+   public static boolean validateInteger(String string) {
+      if (!string.isEmpty()) {
+         for (int j = 0; j < string.length(); j++) {
+            if (!Character.isDigit(string.charAt(j))) {
+               return false;
+            }
+         }
+         return true;
       }
       return false;
    }
@@ -783,7 +793,7 @@ public class GameRental {
                esql.executeUpdate(update);
 
                System.out.println("Phone number changed successfully");
-               System.out.println("New phone number: " + phone1);
+               System.out.println("New phone number: " + countryCode + phone1);
 
             }
             // allow user to retry changing password
