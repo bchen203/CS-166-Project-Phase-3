@@ -21,9 +21,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ArrayList;
 import java.lang.Math;
+import java.time.*;
 
 /**
  * This class defines a simple embedded SQL utility class that is designed to
@@ -290,7 +292,7 @@ public class GameRental {
                    case 1: viewProfile(esql, authorisedUser); break;
                    case 2: updateProfile(esql, authorisedUser); break;
                    case 3: viewCatalog(esql); break;
-                   case 4: placeOrder(esql); break;
+                   case 4: placeOrder(esql, authorisedUser); break;
                    case 5: viewAllOrders(esql); break;
                    case 6: viewRecentOrders(esql); break;
                    case 7: viewOrderInfo(esql); break;
@@ -366,14 +368,12 @@ public class GameRental {
          String user = in.readLine();
 
          // validate username
-         boolean validUser = false;
-         while (!validUser) {
+         while (true) { // loop until username has not been taken
             if (user.length() <= 50) { // username <= 50 characters
                String availableUser = "SELECT EXISTS (Select 1 FROM Users WHERE login = '" + user + "' LIMIT 1)";
                List<List<String>> userResult = esql.executeQueryAndReturnResult(availableUser);
                boolean userTaken = userResult.get(0).contains("t");
                if (!userTaken) { // username is available to register
-                  validUser = true;
                   break;
                }
             }
@@ -389,12 +389,7 @@ public class GameRental {
          String password = in.readLine();
 
          // validate password
-         boolean validPW = false;
-         while (!validPW) {
-            if (password.length() <= 30) { // password <= 30 characters
-               validPW = true;
-               break;
-            }
+         while (password.length() >= 30) {
             System.out.println("\nInvalid Password");
             System.out.println("Please enter your password: ");
             password = in.readLine();
@@ -416,8 +411,7 @@ public class GameRental {
             validPN = validatePhoneNumber(phone);
          }
          String countryCode = "+1-";
-         String update = "INSERT INTO Users Values('" + user + "', '" + password + "', 'customer', NULL, " + countryCode + phone + ", 0)";
-
+         String update = "INSERT INTO Users Values('" + user + "', '" + password + "', 'customer', NULL, '" + countryCode + phone + "', 0)";
          esql.executeUpdate(update);
          System.out.println("Account Created Successfully");
          System.out.println("Returning to Main Menu...\n");
@@ -465,12 +459,15 @@ public class GameRental {
    public static void viewProfile(GameRental esql, String user) {
       try{
           String query = "SELECT login, favGames, phoneNum, numOverDueGames FROM USERS WHERE login = '" + user + "'";
-
           List<List<String>> profile = esql.executeQueryAndReturnResult(query);
+          System.out.println(
+                 "\n\n*******************************************************\n" +
+                         "              User Profile      	               \n" +
+                         "*******************************************************\n");
           System.out.println("Username: " + profile.get(0).get(0));
           System.out.println("Favorite Games: " + profile.get(0).get(1));
           System.out.println("Phone Number: " + profile.get(0).get(2));
-          System.out.println("# of Overdue Games: " + profile.get(0).get(3));
+          System.out.println("# of Overdue Games: " + profile.get(0).get(3) + "\n") ;
 
       }catch(Exception e) {
           System.err.println(e.getMessage());
@@ -548,7 +545,128 @@ public class GameRental {
          System.err.println(e.getMessage());
       }
    }
-   public static void placeOrder(GameRental esql) {}
+   public static void placeOrder(GameRental esql, String user) {
+      try {
+         System.out.println(
+                 "\n\n*******************************************************\n" +
+                         "              Place Order      	               \n" +
+                         "*******************************************************\n");
+
+         System.out.println("How many different games would you like to order?");
+         String num = in.readLine();
+         boolean validNum = validateInteger(num);
+         while(!validNum) {
+            System.out.println("Invalid input");
+            System.out.println("How many different games would you like to order?");
+            num = in.readLine();
+            validNum = validateInteger(num);
+         }
+         int numGames = Integer.parseInt(num);
+
+         // retrieve gameIDs and number of copies for rental order
+         List<String> gameIDs = new ArrayList<>();
+         List<Integer> numCopies = new ArrayList<>();
+         for (int i = 0; i < numGames; i++) {
+            System.out.println("Please enter gameID: ");
+            String gameID = in.readLine();
+            boolean validGame = validateGameID(esql, gameID);
+            while(!validGame) {
+               System.out.println("Invalid gameID");
+               System.out.println("Please enter gameID: ");
+               gameID = in.readLine();
+               validGame = validateGameID(esql, gameID);
+            }
+            gameIDs.add(gameID);
+            System.out.println("Please enter number of copies: ");
+            String copies = in.readLine();
+            boolean validCopies = validateInteger(copies);
+            while(!validCopies) {
+               System.out.println("Invalid input");
+               System.out.println("Please enter number of copies: ");
+               copies = in.readLine();
+               validCopies = validateInteger(copies);
+            }
+            numCopies.add(Integer.parseInt(copies));
+         }
+
+         // calculate total price
+         String query = "SELECT price FROM CATALOG WHERE gameID = '" + gameIDs.get(0) + "'";
+         for (int i = 1; i < numGames; i++) {
+            // retrieve game price
+            query += " OR gameID = '" + gameIDs.get(i) + "'";
+         }
+         List<List<String>> priceResult = esql.executeQueryAndReturnResult(query);
+         double totalPrice = 0.0;
+         for (int i = 0; i < numGames; i++) {
+            totalPrice += (numCopies.get(i) * Double.parseDouble(priceResult.get(i).get(0)));
+         }
+
+         // summarize rental order
+         System.out.println("\nItems in Order");
+         System.out.println("--------------");
+         System.out.println("gameID  \tnumCopies\tPrice");
+         Integer totalCopies = 0;
+         for(int i = 0; i < numGames; i++) {
+            System.out.println(gameIDs.get(i) + "\t    " + numCopies.get(i) + "\t\t" + priceResult.get(i).get(0));
+            totalCopies += numCopies.get(i);
+         }
+         System.out.println("Total: numGames = " + numGames + ", totalCopies = " + totalCopies);
+         System.out.println("Total Cost: $" + totalPrice);
+
+
+         boolean validConfirm = false;
+         while(!validConfirm){
+            System.out.println("Please confirm order (y/n): ");
+            String confirm = in.readLine();
+            switch (confirm) {
+               case "y": validConfirm = true; break;
+               case "n": System.out.println("Order canceled\nReturning to Main Menu..."); return;
+
+               default: System.out.println("Invalid input");
+            }
+
+         }
+
+         // create unique rental order
+         String rentalID = createOrderID(esql);
+         DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+         String orderTS = LocalDateTime.now().format(f);
+         LocalDate dueDate = LocalDate.now().plusDays(30);
+         String rentalOrder = "INSERT INTO RentalOrder VALUES('" +
+                 rentalID + "', '" +
+                 user + "', " +
+                 totalCopies + ", " +
+                 totalPrice + ", '" +
+                 orderTS + "', '" +
+                 dueDate + "')";
+         esql.executeUpdate(rentalOrder);
+
+         // create unique tracking info
+         String trackingID = createTrackingID(esql);
+         String trackingInfo = "INSERT INTO TrackingInfo VALUES('" +
+                 trackingID + "', '" +
+                 rentalID + "', " +
+                 "'Order Received', " +
+                 "'Los Angeles,CA', " +
+                 "'USPS', '" +
+                 orderTS + "')";
+         esql.executeUpdate(trackingInfo);
+
+         String gamesInOrder = "INSERT INTO GamesInOrder VALUES";
+         for (int i = 0; i < numGames; i++) {
+            gamesInOrder += "('" + rentalID + "', '" + gameIDs.get(i) + "', " + numCopies.get(i) + ")";
+            if (i < numGames - 1) {
+               gamesInOrder += ", ";
+            }
+         }
+         esql.executeUpdate(gamesInOrder);
+
+         System.out.println("Order placed successfully\n");
+         System.gc();
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+   }
    public static void viewAllOrders(GameRental esql) {}
    public static void viewRecentOrders(GameRental esql) {}
    public static void viewOrderInfo(GameRental esql) {}
@@ -577,6 +695,35 @@ public class GameRental {
       return false;
    }
 
+   public static boolean validateGameID(GameRental esql, String gameID){
+      try{
+         if (gameID.length() == 8) {
+            if (gameID.startsWith("game")) {
+               // check if gameID exists in catalog
+               String availableUser = "SELECT EXISTS (Select 1 FROM Catalog WHERE gameID = '" + gameID + "' LIMIT 1)";
+               List<List<String>> gameResult = esql.executeQueryAndReturnResult(availableUser);
+               return gameResult.get(0).contains("t"); // true if gameID found in database
+            }
+            return false;
+         }
+         return false;
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+      return false;
+   }
+
+   public static boolean validateInteger(String string) {
+      if (!string.isEmpty()) {
+         for (int j = 0; j < string.length(); j++) {
+            if (!Character.isDigit(string.charAt(j))) {
+               return false;
+            }
+         }
+         return true;
+      }
+      return false;
+   }
    // functions for updating profile
    public static void changePassword(GameRental esql, String user) {
       try{
@@ -604,17 +751,19 @@ public class GameRental {
                System.out.println("Error: Passwords do not match!");
 
                // let user cancel
-               System.out.println("Would you like to try again? (y/n): ");
-               String retry = in.readLine();
-               switch (retry) {
-                  case "y": break;
-                  case "n": pwMatch = true; System.out.println("Returning to Profile Settings..."); break;
+               boolean validRetry = false;
+               while (!validRetry) {
+                  System.out.println("Would you like to try again? (y/n): ");
+                  String retry = in.readLine();
+                  switch (retry) {
+                     case "y": validRetry = true; break;
+                     case "n": System.out.println("Returning to Profile Settings..."); return;
 
-                  default: pwMatch = true; break;
+                     default: System.out.println("Invalid input");
+                  }
                }
             }
          }
-         return;
       }catch(Exception e) {
          System.err.println(e.getMessage());
       }
@@ -654,7 +803,7 @@ public class GameRental {
                esql.executeUpdate(update);
 
                System.out.println("Phone number changed successfully");
-               System.out.println("New phone number: " + phone1);
+               System.out.println("New phone number: " + countryCode + phone1);
 
             }
             // allow user to retry changing password
@@ -662,13 +811,18 @@ public class GameRental {
                System.out.println("Phone numbers do not match!");
 
                // let user cancel
-               System.out.println("Would you like to try again (y/n): ");
-               String retry = in.readLine();
-               switch (retry) {
-                  case "y": break;
-                  case "n": pnMatch = true; System.out.println("Returning to Profile Settings..."); break;
+               boolean validRetry = false;
+               while (!validRetry) {
+                  System.out.println("Would you like to try again? (y/n): ");
+                  String retry = in.readLine();
+                  switch (retry) {
+                     case "y":
+                        validRetry = true; break;
+                     case "n":
+                        System.out.println("Returning to Profile Settings..."); return;
 
-                  default: pnMatch = true; break;
+                     default: System.out.println("Invalid input");
+                  }
                }
             }
          }
@@ -708,16 +862,16 @@ public class GameRental {
    public static void filterCatalog(GameRental esql, String genre, Double price, String sort) {
       try{
          String filters = "Displaying results for: ";
-         String query = "SELECT gameName, genre, price, description FROM Catalog";
-         if (!genre.equals("") && price > 0) {
+         String query = "SELECT gameID, gameName, genre, price, description FROM Catalog";
+         if (!genre.isEmpty() && price > 0) {
             query += " WHERE genre = '" + genre + "' AND price < " + price;
             filters += "Genre = \" " + genre + "\", Price < " + price;
          }
-         else if (!genre.equals("") && price == 0) {
+         else if (!genre.isEmpty() && price == 0) {
             query += " WHERE genre = '" + genre + "'";
             filters += "Genre = \"" + genre + "\"";
          }
-         else if (genre.equals("") && price > 0) {
+         else if (genre.isEmpty() && price > 0) {
             query += " WHERE price < " + price;
             filters += "Price < " + price;
          }
@@ -766,7 +920,7 @@ public class GameRental {
 
    public static String changeSort(String sort){
       try{
-         if (sort == "DESC") {
+         if (sort.equals("DESC")) {
             System.out.println("Sorting by: Price Ascending");
             return "ASC";
          }
@@ -779,6 +933,33 @@ public class GameRental {
       }
       return null;
    }
+
+   public static String createOrderID (GameRental esql) {
+      try {
+         String query = "SELECT rentalOrderID FROM RentalOrder ORDER BY rentalOrderID DESC LIMIT 1";
+         List<List<String>> IDResult = esql.executeQueryAndReturnResult(query);
+         String maxID = IDResult.get(0).get(0).substring(15); // retrieve id of last placed order
+         int nextID = Integer.parseInt(maxID) + 1;
+          return "gamerentalorder" + nextID;
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+      return null;
+   }
+
+   public static String createTrackingID (GameRental esql) {
+      try {
+         String query = "SELECT trackingID FROM TrackingInfo ORDER BY trackingID DESC LIMIT 1";
+         List<List<String>> IDResult = esql.executeQueryAndReturnResult(query);
+         String maxID = IDResult.get(0).get(0).substring(10); // retrieve id of last placed order
+         int nextID = Integer.parseInt(maxID) + 1;
+          return "trackingid" + nextID;
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+      return null;
+   }
+
 
 }//end GameRental
 
