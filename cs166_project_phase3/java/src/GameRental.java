@@ -559,6 +559,7 @@ public class GameRental {
          System.out.println("How many different games would you like to order?");
          int numGames = Integer.parseInt(in.readLine());
 
+         // retrieve gameIDs and number of copies for rental order
          List<String> gameIDs = new ArrayList<>();
          List<Integer> numCopies = new ArrayList<>();
          for (int i = 0; i < numGames; i++) {
@@ -591,6 +592,7 @@ public class GameRental {
             numCopies.add(Integer.parseInt(copies));
          }
 
+         // calculate total price
          String query = "SELECT price FROM CATALOG WHERE gameID = '" + gameIDs.get(0) + "'";
          for (int i = 1; i < numGames; i++) {
             // retrieve game price
@@ -601,12 +603,13 @@ public class GameRental {
          for (int i = 0; i < numGames; i++) {
             totalPrice += (numCopies.get(i) * Double.parseDouble(priceResult.get(i).get(0)));
          }
-         // summarize order
+
+         // summarize rental order
          System.out.println("Items in Order");
          System.out.println("--------------");
          System.out.println("gameID  \tnumCopies\tPrice");
          Integer totalCopies = 0;
-         for(int i = 0; i < gameIDs.size(); i++) {
+         for(int i = 0; i < numGames; i++) {
             System.out.println(gameIDs.get(i) + "\t    " + numCopies.get(i) + "\t\t" + priceResult.get(i).get(0));
             totalCopies += numCopies.get(i);
          }
@@ -618,15 +621,39 @@ public class GameRental {
          DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
          String orderTS = LocalDateTime.now().format(f);
          LocalDate dueDate = LocalDate.now().plusDays(30);
-         String rentalOrder = "INSERT INTO RentalOrder VALUES(" +
-                 rentalID + ", " +
-                 user + ", " +
+         String rentalOrder = "INSERT INTO RentalOrder VALUES('" +
+                 rentalID + "', '" +
+                 user + "', " +
                  totalCopies + ", " +
-                 totalPrice + ", " +
-                 orderTS + ", " +
-                 dueDate + ")";
+                 totalPrice + ", '" +
+                 orderTS + "', '" +
+                 dueDate + "')";
+         System.out.println(rentalOrder);
+
          esql.executeUpdate(rentalOrder);
 
+         // create unique tracking info
+         String trackingID = createTrackingID(esql);
+         String trackingInfo = "INSERT INTO TrackingInfo VALUES('" +
+                 trackingID + "', '" +
+                 rentalID + "', " +
+                 "'Order Received', " +
+                 "'Los Angeles,CA', " +
+                 "'USPS', '" +
+                 orderTS + "')";
+         System.out.println(trackingInfo);
+
+         esql.executeUpdate(trackingInfo);
+
+         String gamesInOrder = "INSERT INTO GamesInOrder VALUES";
+         for (int i = 0; i < numGames; i++) {
+            gamesInOrder += "('" + rentalID + "', '" + gameIDs.get(i) + "', " + numCopies.get(i) + ")";
+            if (i < numGames - 1) {
+               gamesInOrder += ", ";
+            }
+         }
+         System.out.println(gamesInOrder);
+         esql.executeUpdate(gamesInOrder);
 
 
          System.out.println("Order placed successfully");
@@ -895,6 +922,21 @@ public class GameRental {
       }
       return null;
    }
+
+   public static String createTrackingID (GameRental esql) {
+      try {
+         String query = "SELECT trackingID FROM TrackingInfo ORDER BY trackingID DESC LIMIT 1";
+         List<List<String>> IDResult = esql.executeQueryAndReturnResult(query);
+         String maxID = IDResult.get(0).get(0).substring(10); // retrieve id of last placed order
+         int nextID = Integer.parseInt(maxID) + 1;
+         String rentalID = "trackingid" + nextID; // generate next sequential id
+         return rentalID;
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+      return null;
+   }
+
 
 }//end GameRental
 
