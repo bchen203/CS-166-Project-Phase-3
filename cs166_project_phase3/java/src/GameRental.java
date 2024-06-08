@@ -418,8 +418,7 @@ public class GameRental {
             validPN = validatePhoneNumber(phone);
          }
          String countryCode = "+1-";
-         String update = "INSERT INTO Users Values('" + user + "', '" + password + "', 'customer', NULL, " + countryCode + phone + ", 0)";
-
+         String update = "INSERT INTO Users Values('" + user + "', '" + password + "', 'customer', NULL, '" + countryCode + phone + "', 0)";
          esql.executeUpdate(update);
          System.out.println("Account Created Successfully");
          System.out.println("Returning to Main Menu...\n");
@@ -614,16 +613,20 @@ public class GameRental {
          System.out.println("Total: numGames = " + numGames + ", totalCopies = " + totalCopies);
          System.out.println("Total Cost: $" + totalPrice);
 
+         // create unique rental order
+         String rentalID = createOrderID(esql);
          DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
          String orderTS = LocalDateTime.now().format(f);
          LocalDate dueDate = LocalDate.now().plusDays(30);
-         String rentalOrder = "INSERT INTO RentalOrder VALUES(gamerentalorder5000, " +
+         String rentalOrder = "INSERT INTO RentalOrder VALUES(" +
+                 rentalID + ", " +
                  user + ", " +
                  totalCopies + ", " +
                  totalPrice + ", " +
                  orderTS + ", " +
                  dueDate + ")";
-         System.out.println(rentalOrder);
+         esql.executeUpdate(rentalOrder);
+
 
 
          System.out.println("Order placed successfully");
@@ -873,6 +876,20 @@ public class GameRental {
             System.out.println("Sorting by: Price Descending");
             return "DESC";
          }
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+      return null;
+   }
+
+   public static String createOrderID (GameRental esql) {
+      try {
+         String query = "SELECT rentalOrderID FROM RentalOrder ORDER BY rentalOrderID DESC LIMIT 1";
+         List<List<String>> IDResult = esql.executeQueryAndReturnResult(query);
+         String maxID = IDResult.get(0).get(0).substring(15); // retrieve id of last placed order
+         int nextID = Integer.parseInt(maxID) + 1;
+         String rentalID = "gamerentalorder" + nextID; // generate next sequential id
+         return rentalID;
       }catch(Exception e) {
          System.err.println(e.getMessage());
       }
