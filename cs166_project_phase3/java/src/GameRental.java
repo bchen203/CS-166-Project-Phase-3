@@ -368,14 +368,12 @@ public class GameRental {
          String user = in.readLine();
 
          // validate username
-         boolean validUser = false;
-         while (!validUser) {
+         while (true) { // loop until username has not been taken
             if (user.length() <= 50) { // username <= 50 characters
                String availableUser = "SELECT EXISTS (Select 1 FROM Users WHERE login = '" + user + "' LIMIT 1)";
                List<List<String>> userResult = esql.executeQueryAndReturnResult(availableUser);
                boolean userTaken = userResult.get(0).contains("t");
                if (!userTaken) { // username is available to register
-                  validUser = true;
                   break;
                }
             }
@@ -391,12 +389,7 @@ public class GameRental {
          String password = in.readLine();
 
          // validate password
-         boolean validPW = false;
-         while (!validPW) {
-            if (password.length() <= 30) { // password <= 30 characters
-               validPW = true;
-               break;
-            }
+         while (password.length() <= 30) {
             System.out.println("\nInvalid Password");
             System.out.println("Please enter your password: ");
             password = in.readLine();
@@ -603,7 +596,7 @@ public class GameRental {
             query += " OR gameID = '" + gameIDs.get(i) + "'";
          }
          List<List<String>> priceResult = esql.executeQueryAndReturnResult(query);
-         Double totalPrice = 0.0;
+         double totalPrice = 0.0;
          for (int i = 0; i < numGames; i++) {
             totalPrice += (numCopies.get(i) * Double.parseDouble(priceResult.get(i).get(0)));
          }
@@ -619,6 +612,20 @@ public class GameRental {
          }
          System.out.println("Total: numGames = " + numGames + ", totalCopies = " + totalCopies);
          System.out.println("Total Cost: $" + totalPrice);
+
+
+         boolean validConfirm = false;
+         while(!validConfirm){
+            System.out.println("Please confirm order (y/n): ");
+            String confirm = in.readLine();
+            switch (confirm) {
+               case "y": validConfirm = true; break;
+               case "n": System.out.println("Order canceled\nReturning to Main Menu..."); return;
+
+               default: System.out.println("Invalid input");
+            }
+
+         }
 
          // create unique rental order
          String rentalID = createOrderID(esql);
@@ -744,13 +751,16 @@ public class GameRental {
                System.out.println("Error: Passwords do not match!");
 
                // let user cancel
-               System.out.println("Would you like to try again? (y/n): ");
-               String retry = in.readLine();
-               switch (retry) {
-                  case "y": break;
-                  case "n": pwMatch = true; System.out.println("Returning to Profile Settings..."); break;
+               boolean validRetry = false;
+               while (!validRetry) {
+                  System.out.println("Would you like to try again? (y/n): ");
+                  String retry = in.readLine();
+                  switch (retry) {
+                     case "y": validRetry = true; break;
+                     case "n": System.out.println("Returning to Profile Settings..."); return;
 
-                  default: pwMatch = true; break;
+                     default: System.out.println("Invalid input");
+                  }
                }
             }
          }
@@ -801,13 +811,18 @@ public class GameRental {
                System.out.println("Phone numbers do not match!");
 
                // let user cancel
-               System.out.println("Would you like to try again (y/n): ");
-               String retry = in.readLine();
-               switch (retry) {
-                  case "y": break;
-                  case "n": pnMatch = true; System.out.println("Returning to Profile Settings..."); break;
+               boolean validRetry = false;
+               while (!validRetry) {
+                  System.out.println("Would you like to try again? (y/n): ");
+                  String retry = in.readLine();
+                  switch (retry) {
+                     case "y":
+                        validRetry = true; break;
+                     case "n":
+                        System.out.println("Returning to Profile Settings..."); return;
 
-                  default: pnMatch = true; break;
+                     default: System.out.println("Invalid input");
+                  }
                }
             }
          }
@@ -848,15 +863,15 @@ public class GameRental {
       try{
          String filters = "Displaying results for: ";
          String query = "SELECT gameID, gameName, genre, price, description FROM Catalog";
-         if (!genre.equals("") && price > 0) {
+         if (!genre.isEmpty() && price > 0) {
             query += " WHERE genre = '" + genre + "' AND price < " + price;
             filters += "Genre = \" " + genre + "\", Price < " + price;
          }
-         else if (!genre.equals("") && price == 0) {
+         else if (!genre.isEmpty() && price == 0) {
             query += " WHERE genre = '" + genre + "'";
             filters += "Genre = \"" + genre + "\"";
          }
-         else if (genre.equals("") && price > 0) {
+         else if (genre.isEmpty() && price > 0) {
             query += " WHERE price < " + price;
             filters += "Price < " + price;
          }
@@ -905,7 +920,7 @@ public class GameRental {
 
    public static String changeSort(String sort){
       try{
-         if (sort == "DESC") {
+         if (sort.equals("DESC")) {
             System.out.println("Sorting by: Price Ascending");
             return "ASC";
          }
@@ -925,8 +940,7 @@ public class GameRental {
          List<List<String>> IDResult = esql.executeQueryAndReturnResult(query);
          String maxID = IDResult.get(0).get(0).substring(15); // retrieve id of last placed order
          int nextID = Integer.parseInt(maxID) + 1;
-         String rentalID = "gamerentalorder" + nextID; // generate next sequential id
-         return rentalID;
+          return "gamerentalorder" + nextID;
       }catch(Exception e) {
          System.err.println(e.getMessage());
       }
@@ -939,8 +953,7 @@ public class GameRental {
          List<List<String>> IDResult = esql.executeQueryAndReturnResult(query);
          String maxID = IDResult.get(0).get(0).substring(10); // retrieve id of last placed order
          int nextID = Integer.parseInt(maxID) + 1;
-         String rentalID = "trackingid" + nextID; // generate next sequential id
-         return rentalID;
+          return "trackingid" + nextID;
       }catch(Exception e) {
          System.err.println(e.getMessage());
       }
