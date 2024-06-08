@@ -1021,20 +1021,30 @@ public class GameRental {
       return false;
    }
 
-   // functions to update game catalog
-   public static void changeGameName(GameRental esql) {
-      try {
-         System.out.println("You have selected: Change Game Name");
+   public static String inputGameID(GameRental esql) {
+      try{
          System.out.println("Please enter gameID (game0000): ");
          String gameID = in.readLine();
 
          boolean validGame = validateGameID(esql, gameID);
-         while(!validGame) {
+         while (!validGame) {
             System.out.println("Invalid gameID");
             System.out.println("Please enter gameID (game0000): ");
             gameID = in.readLine();
             validGame = validateGameID(esql, gameID);
          }
+         return gameID;
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+      return null;
+   }
+
+   // functions to update game catalog
+   public static void changeGameName(GameRental esql) {
+      try {
+         System.out.println("You have selected: Change Game Name");
+         String gameID = inputGameID(esql);
 
          boolean namesMatch = false;
          while(!namesMatch) {
