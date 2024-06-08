@@ -514,8 +514,8 @@ public class GameRental {
                             "              Game Catalog      	               \n" +
                             "*******************************************************\n");
 
-            System.out.println("CATALOG OPTIONS");
-            System.out.println("---------------");
+            System.out.println("CATALOG SETTINGS");
+            System.out.println("----------------");
 
             System.out.println("1. View Catalog");
             System.out.println("2. Set Genre");
@@ -698,7 +698,7 @@ public class GameRental {
 
 
             switch(readChoice()){
-//               case 1:;
+               case 1: changeGameName(esql); break;
 //               case 2:;
 //               case 3:;
 //               case 4:;
@@ -1022,13 +1022,62 @@ public class GameRental {
    }
 
    // functions to update game catalog
-//   public static void changeGameName(GameRental esql) {
-//      try {
-//
-//      }catch(Exception e) {
-//         System.err.println(e.getMessage());
-//      }
-//   }
+   public static void changeGameName(GameRental esql) {
+      try {
+         System.out.println("You have selected: Change Game Name");
+         System.out.println("Please enter gameID (game0000): ");
+         String gameID = in.readLine();
+
+         boolean validGame = validateGameID(esql, gameID);
+         while(!validGame) {
+            System.out.println("Invalid gameID");
+            System.out.println("Please enter gameID (game0000): ");
+            gameID = in.readLine();
+            validGame = validateGameID(esql, gameID);
+         }
+
+         boolean namesMatch = false;
+         while(!namesMatch) {
+
+            System.out.println("Please enter new game name: ");
+            String name1 = in.readLine();
+            System.out.println("Please confirm new game name: ");
+            String name2 = in.readLine();
+
+            if(name1.equals(name2)) {
+               namesMatch = true;
+
+               System.out.println("Updating game name...");
+               String update = "UPDATE Catalog SET gameName = '" + name1 + "' WHERE gameID = '" + gameID +"'";
+               esql.executeUpdate(update);
+
+
+               System.out.println("Game name changed successfully");
+               System.out.println("Name of " + gameID + " changed to " + name1);
+            }
+            else {
+               System.out.println("Game names do not match!");
+
+               // let user cancel
+               boolean validRetry = false;
+               while (!validRetry) {
+                  System.out.println("Would you like to try again? (y/n): ");
+                  String retry = in.readLine();
+                  switch (retry) {
+                     case "y":
+                        validRetry = true; break;
+                     case "n":
+                        System.out.println("Returning to Catalog Settings..."); return;
+
+                     default: System.out.println("Invalid input");
+                  }
+               }
+            }
+         }
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+   }
 //
 //   public static void changeGenre(GameRental esql) {
 //      try {
