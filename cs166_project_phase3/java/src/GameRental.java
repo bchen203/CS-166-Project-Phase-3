@@ -389,7 +389,7 @@ public class GameRental {
          String password = in.readLine();
 
          // validate password
-         while (password.length() <= 30) {
+         while (password.length() >= 30) {
             System.out.println("\nInvalid Password");
             System.out.println("Please enter your password: ");
             password = in.readLine();
