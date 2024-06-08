@@ -17,14 +17,11 @@ import java.sql.Statement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.io.File;
-import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ArrayList;
-import java.lang.Math;
 import java.time.*;
 
 /**
@@ -298,7 +295,7 @@ public class GameRental {
                    case 7: viewOrderInfo(esql); break;
                    case 8: viewTrackingInfo(esql); break;
                    case 9: updateTrackingInfo(esql); break;
-                   case 10: updateCatalog(esql); break;
+                   case 10: updateCatalog(esql, authorisedUser); break;
                    case 11: updateUser(esql); break;
 
 
@@ -672,8 +669,58 @@ public class GameRental {
    public static void viewOrderInfo(GameRental esql) {}
    public static void viewTrackingInfo(GameRental esql) {}
    public static void updateTrackingInfo(GameRental esql) {}
-   public static void updateCatalog(GameRental esql) {}
-   public static void updateUser(GameRental esql) {}
+   public static void updateCatalog(GameRental esql, String user) {
+      try {
+         System.out.println("\nYou have selected: Update Catalog");
+
+         if (!checkUserRole(esql, user, "manager")) {
+            System.out.println("You are unauthorized to update the catalog");
+            System.out.println("Returning to Main Menu...");
+            return;
+         }
+
+         boolean updateCatalog = true;
+         while(updateCatalog) {
+            System.out.println(
+                    "\n\n*******************************************************\n" +
+                            "              Update Game Catalog      	               \n" +
+                            "*******************************************************\n");
+
+            System.out.println("CATALOG OPTIONS");
+            System.out.println("---------------");
+            System.out.println("1. Change Game Name");
+            System.out.println("2. Change Genre");
+            System.out.println("3. Change Price");
+            System.out.println("4. Change Description");
+            System.out.println("5. Change Image");
+            System.out.println("6. Add New Game");
+            System.out.println("9. Return to Main Menu");
+
+
+            switch(readChoice()){
+//               case 1:;
+//               case 2:;
+//               case 3:;
+//               case 4:;
+//               case 5:;
+//               case 6:;
+//
+               case 9: updateCatalog = false; break;
+               default: System.out.println("Unrecognized choice!");
+            }
+         }
+
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+   }
+   public static void updateUser(GameRental esql) {
+      try {
+
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+   }
 
    // input validation
    public static boolean validatePhoneNumber(String phone) {
@@ -724,6 +771,7 @@ public class GameRental {
       }
       return false;
    }
+
    // functions for updating profile
    public static void changePassword(GameRental esql, String user) {
       try{
@@ -934,6 +982,7 @@ public class GameRental {
       return null;
    }
 
+   // functions for creating rental order and tracking info
    public static String createOrderID (GameRental esql) {
       try {
          String query = "SELECT rentalOrderID FROM RentalOrder ORDER BY rentalOrderID DESC LIMIT 1";
@@ -960,6 +1009,48 @@ public class GameRental {
       return null;
    }
 
+   public static boolean checkUserRole(GameRental esql, String user, String role) {
+      try {
+         String query = "SELECT EXISTS(SELECT 1 FROM Users WHERE login = '" + user + "' AND role = '" + role + "')";
+         List<List<String>> result = esql.executeQueryAndReturnResult(query);
 
+         return result.get(0).get(0).equals("t");
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+      return false;
+   }
+
+   // functions to update game catalog
+//   public static void changeGameName(GameRental esql) {
+//      try {
+//
+//      }catch(Exception e) {
+//         System.err.println(e.getMessage());
+//      }
+//   }
+//
+//   public static void changeGenre(GameRental esql) {
+//      try {
+//
+//      }catch(Exception e) {
+//         System.err.println(e.getMessage());
+//      }
+//   }
+//
+//   public static void changePrice(GameRental esql) {
+//      try {
+//
+//      }catch(Exception e) {
+//         System.err.println(e.getMessage());
+//      }
+//   }
+//   public static void changeDescription(GameRental esql) {
+//      try {
+//
+//      }catch(Exception e) {
+//         System.err.println(e.getMessage());
+//      }
+//   }
 }//end GameRental
 
