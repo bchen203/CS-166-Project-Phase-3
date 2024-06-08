@@ -741,7 +741,6 @@ public class GameRental {
       }
       return false;
    }
-
    public static boolean validateGameID(GameRental esql, String gameID){
       try{
          if (gameID.length() == 8) {
@@ -759,7 +758,6 @@ public class GameRental {
       }
       return false;
    }
-
    public static boolean validateInteger(String string) {
       if (!string.isEmpty()) {
          for (int j = 0; j < string.length(); j++) {
@@ -771,7 +769,23 @@ public class GameRental {
       }
       return false;
    }
+   public static boolean retryInput() {
+      try {
+         while (true) {
+            System.out.println("Would you like to try again? (y/n): ");
+            String retry = in.readLine();
+            switch (retry) {
+               case "y": return true;
+               case "n": return false;
 
+               default: System.out.println("Invalid input");
+            }
+         }
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+      return true;
+   }
    // functions for updating profile
    public static void changePassword(GameRental esql, String user) {
       try{
@@ -799,16 +813,10 @@ public class GameRental {
                System.out.println("Error: Passwords do not match!");
 
                // let user cancel
-               boolean validRetry = false;
-               while (!validRetry) {
-                  System.out.println("Would you like to try again? (y/n): ");
-                  String retry = in.readLine();
-                  switch (retry) {
-                     case "y": validRetry = true; break;
-                     case "n": System.out.println("Returning to Profile Settings..."); return;
-
-                     default: System.out.println("Invalid input");
-                  }
+               boolean validRetry = retryInput();
+               if (!validRetry) {
+                  System.out.println("Returning to Profile Settings...");
+                  return;
                }
             }
          }
@@ -859,18 +867,10 @@ public class GameRental {
                System.out.println("Phone numbers do not match!");
 
                // let user cancel
-               boolean validRetry = false;
-               while (!validRetry) {
-                  System.out.println("Would you like to try again? (y/n): ");
-                  String retry = in.readLine();
-                  switch (retry) {
-                     case "y":
-                        validRetry = true; break;
-                     case "n":
-                        System.out.println("Returning to Profile Settings..."); return;
-
-                     default: System.out.println("Invalid input");
-                  }
+               boolean validRetry = retryInput();
+               if (!validRetry) {
+                  System.out.println("Returning to Profile Settings...");
+                  return;
                }
             }
          }
@@ -995,7 +995,6 @@ public class GameRental {
       }
       return null;
    }
-
    public static String createTrackingID (GameRental esql) {
       try {
          String query = "SELECT trackingID FROM TrackingInfo ORDER BY trackingID DESC LIMIT 1";
@@ -1069,16 +1068,10 @@ public class GameRental {
                System.out.println("Game names do not match!");
 
                // let user cancel
-               boolean validRetry = false;
-               while (!validRetry) {
-                  System.out.println("Would you like to try again? (y/n): ");
-                  String retry = in.readLine();
-                  switch (retry) {
-                     case "y": validRetry = true; break;
-                     case "n": System.out.println("Returning to Catalog Settings..."); return;
-
-                     default: System.out.println("Invalid input");
-                  }
+               boolean validRetry = retryInput();
+               if (!validRetry) {
+                  System.out.println("Returning to Catalog Settings...");
+                  return;
                }
             }
          }
@@ -1115,20 +1108,13 @@ public class GameRental {
                System.out.println("Game genres do not match!");
 
                // let user cancel
-               boolean validRetry = false;
-               while (!validRetry) {
-                  System.out.println("Would you like to try again? (y/n): ");
-                  String retry = in.readLine();
-                  switch (retry) {
-                     case "y": validRetry = true; break;
-                     case "n": System.out.println("Returning to Catalog Settings..."); return;
-
-                     default: System.out.println("Invalid input");
-                  }
+               boolean validRetry = retryInput();
+               if (!validRetry) {
+                  System.out.println("Returning to Catalog Settings...");
+                  return;
                }
             }
          }
-
       }catch(Exception e) {
          System.err.println(e.getMessage());
       }
