@@ -910,7 +910,7 @@ public class GameRental {
          String numStr = in.readLine();
          boolean validNum = validateInteger(numStr);
          while(!validNum) {
-            System.out.println();
+            System.out.println("Invalid input");
             System.out.println("Please enter total number of favorite games: ");
             numStr = in.readLine();
             validNum = validateInteger(numStr);
