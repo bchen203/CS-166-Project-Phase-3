@@ -1081,8 +1081,8 @@ public class GameRental {
             newUser = in.readLine();
             validUser = validateUser(esql, newUser);
          }
+         System.out.println("Now changing profile of " + newUser);
          return newUser;
-
       }catch(Exception e) {
          System.err.println(e.getMessage());
       }
