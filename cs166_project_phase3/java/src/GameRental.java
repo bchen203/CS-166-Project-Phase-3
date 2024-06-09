@@ -815,6 +815,12 @@ public class GameRental {
             System.out.println("Passwords should be no longer than 30 characters.");
             System.out.println("Please enter new password: ");
             String newPW1 = in.readLine();
+            while(newPW1.length() > 30) {
+               System.out.println("Invalid password");
+               System.out.println("Please enter new password");
+               newPW1 = in.readLine();
+            }
+
             System.out.println("Please confirm password: ");
             String newPW2 = in.readLine();
 
@@ -901,7 +907,15 @@ public class GameRental {
          System.out.println("You have selected: Change Favorite Games\n");
 
          System.out.println("Please enter total number of favorite games: ");
-         int numGames = Integer.parseInt(in.readLine());
+         String numStr = in.readLine();
+         boolean validNum = validateInteger(numStr);
+         while(!validNum) {
+            System.out.println();
+            System.out.println("Please enter total number of favorite games: ");
+            numStr = in.readLine();
+            validNum = validateInteger(numStr);
+         }
+         int numGames = Integer.parseInt(numStr);
 
          String games = "";
          for (int i = 0; i < numGames; i++) {
@@ -945,7 +959,6 @@ public class GameRental {
          }
          query += " ORDER BY price " + sort;
 
-         // reformat output of catalog
          // implement pages if time
          esql.executeQueryAndPrintResult(query);
          int rowCount = esql.executeQuery(query);
@@ -971,7 +984,15 @@ public class GameRental {
    public static Double filterPrice(){
       try{
          System.out.println("Please enter maximum price: ");
-         Double price = Double.parseDouble(in.readLine());
+         String priceStr = in.readLine();
+         boolean validPrice = validateDouble(priceStr);
+         while(!validPrice) {
+            System.out.println("Invalid input");
+            System.out.println("Please enter maximum price: ");
+            priceStr = in.readLine();
+            validPrice = validateDouble(priceStr);
+         }
+         Double price = Double.parseDouble(priceStr);
          System.out.println("Returning to Catalog Options...");
 
          return price;
@@ -1022,7 +1043,7 @@ public class GameRental {
       return null;
    }
 
-
+   // functions for editing catalog
    public static boolean checkUserRole(GameRental esql, String user, String role) {
       try {
          String query = "SELECT EXISTS(SELECT 1 FROM Users WHERE login = '" + user + "' AND role = '" + role + "')";
@@ -1034,7 +1055,6 @@ public class GameRental {
       }
       return false;
    }
-
    public static String inputGameID(GameRental esql) {
       try{
          System.out.println("Please enter gameID (game0000): ");
@@ -1053,8 +1073,6 @@ public class GameRental {
       }
       return null;
    }
-
-   // functions to update game catalog
    public static void changeGameName(GameRental esql) {
       try {
          System.out.println("You have selected: Change Game Name");
@@ -1335,7 +1353,6 @@ public class GameRental {
          System.err.println(e.getMessage());
       }
    }
-
    public static String createGameID(GameRental esql) {
       try{
          String query = "SELECT gameID FROM Catalog ORDER BY gameID DESC LIMIT 1";
