@@ -671,8 +671,6 @@ public class GameRental {
    public static void updateTrackingInfo(GameRental esql) {}
    public static void updateCatalog(GameRental esql, String user) {
       try {
-         System.out.println("\nYou have selected: Update Catalog");
-
          if (!checkUserRole(esql, user, "manager")) {
             System.out.println("You are unauthorized to update the catalog");
             System.out.println("Returning to Main Menu...");
@@ -705,6 +703,7 @@ public class GameRental {
                case 4: changeDescription(esql); break;
                case 5: changeImage(esql); break;
                case 6: addGame(esql); break;
+               case 7: removeGame(esql); break;
 
                case 9: updateCatalog = false; break;
                default: System.out.println("Unrecognized choice!");
@@ -1289,6 +1288,49 @@ public class GameRental {
          esql.executeUpdate(update);
 
          System.out.println("Successfully added game to catalog");
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+   }
+   public static void removeGame(GameRental esql) {
+      try{
+         System.out.println("You have selected: Remove Game from Catalog");
+
+         System.out.println("Please enter gameID to remove: ");
+         String gameID = in.readLine();
+         boolean validID = validateGameID(esql, gameID);
+         while(!validID) {
+            System.out.println("Invalid gameID");
+            System.out.println("Please enter gameID to remove: ");
+            gameID = in.readLine();
+            validID = validateGameID(esql, gameID);
+         }
+         System.out.println("Retrieving game information...");
+         String query = "SELECT gameName, genre, price, description FROM Catalog WHERE gameID = '" + gameID + "' LIMIT 1";
+         List<List<String>> game = esql.executeQueryAndReturnResult(query);
+         System.out.println("Name: " + game.get(0).get(0));
+         System.out.println("Genre: " + game.get(0).get(1));
+         System.out.println("Price: " + game.get(0).get(2));
+         System.out.println("Description: " + game.get(0).get(3));
+
+         boolean validConfirm = false;
+         while(!validConfirm) {
+            System.out.println("Please confirm deletion (y/n): ");
+            String confirm = in.readLine();
+            switch (confirm) {
+               case "y": validConfirm = true; break;
+               case "n": System.out.println("Removal from catalog cancelled\nReturning to Catalog Settings..."); return;
+
+               default: System.out.println("Invalid input");
+            }
+         }
+
+         String update = "DELETE FROM Catalog WHERE gameID = '" + gameID + "'";
+         esql.executeUpdate(update);
+
+         System.out.println("Successfully removed " + gameID + "from catalog");
+         System.out.println("Returning to Catalog Settings...");
+
       }catch(Exception e) {
          System.err.println(e.getMessage());
       }
