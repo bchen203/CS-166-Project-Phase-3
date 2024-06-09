@@ -700,7 +700,7 @@ public class GameRental {
             switch(readChoice()){
                case 1: changeGameName(esql); break;
                case 2: changeGenre(esql); break;
-//               case 3:;
+               case 3: changePrice(esql); break;
 //               case 4:;
 //               case 5:;
 //               case 6:;
@@ -760,14 +760,32 @@ public class GameRental {
    }
    public static boolean validateInteger(String string) {
       if (!string.isEmpty()) {
-         for (int j = 0; j < string.length(); j++) {
-            if (!Character.isDigit(string.charAt(j))) {
+         for (int i = 0; i < string.length(); i++) {
+            if (!Character.isDigit(string.charAt(i))) {
                return false;
             }
          }
          return true;
       }
       return false;
+   }
+   public static boolean validateDouble(String string) {
+      if (!string.contains(".")) {
+         return validateInteger(string);
+      }
+      int numDecimals = 0;
+      for (int i = 0; i < string.length(); i++) {
+         if (string.charAt(i) == '.') {
+            numDecimals += 1;
+            if (numDecimals > 1) {
+               return false;
+            }
+         }
+         else if(!Character.isDigit((string.charAt(i)))) {
+            return false;
+         }
+      }
+      return true;
    }
    public static boolean retryInput() {
       try {
@@ -786,6 +804,7 @@ public class GameRental {
       }
       return true;
    }
+
    // functions for updating profile
    public static void changePassword(GameRental esql, String user) {
       try{
@@ -810,7 +829,7 @@ public class GameRental {
             }
             // allow user to retry changing password
             else {
-               System.out.println("Error: Passwords do not match!");
+               System.out.println("Passwords do not match!");
 
                // let user cancel
                boolean validRetry = retryInput();
@@ -824,7 +843,6 @@ public class GameRental {
          System.err.println(e.getMessage());
       }
    }
-
    public static void changePhoneNumber(GameRental esql, String user) {
       try{
          System.out.println("You have selected: Change Phone Number\n");
@@ -878,7 +896,6 @@ public class GameRental {
          System.err.println(e.getMessage());
       }
    }
-
    public static void changeFavoriteGames(GameRental esql, String user) {
       try{
          System.out.println("You have selected: Change Favorite Games\n");
@@ -938,7 +955,6 @@ public class GameRental {
          System.err.println(e.getMessage());
       }
    }
-
    public static String filterGenre(){
       try{
          System.out.println("Only 1 genre can be viewed at a time.");
@@ -952,7 +968,6 @@ public class GameRental {
       }
       return null;
    }
-
    public static Double filterPrice(){
       try{
          System.out.println("Please enter maximum price: ");
@@ -965,7 +980,6 @@ public class GameRental {
       }
       return null;
    }
-
    public static String changeSort(String sort){
       try{
          if (sort.equals("DESC")) {
@@ -1079,7 +1093,6 @@ public class GameRental {
          System.err.println(e.getMessage());
       }
    }
-
    public static void changeGenre(GameRental esql) {
       try {
          System.out.println("You have selected Change Genre");
@@ -1119,14 +1132,63 @@ public class GameRental {
          System.err.println(e.getMessage());
       }
    }
+   public static void changePrice(GameRental esql) {
+      try {
+         System.out.println("You have selected: Change Price");
 
-//   public static void changePrice(GameRental esql) {
-//      try {
-//
-//      }catch(Exception e) {
-//         System.err.println(e.getMessage());
-//      }
-//   }
+         String gameID = inputGameID(esql);
+         boolean pricesMatch = false;
+         while(!pricesMatch) {
+
+            System.out.println("Please enter new game price: ");
+            String price = in.readLine();
+            boolean validPrice = validateDouble(price);
+            while (!validPrice) {
+               System.out.println("Invalid input");
+               System.out.println("Please enter new game price: ");
+               price = in.readLine();
+               validPrice = validateDouble(price);
+            }
+            Double price1 = Double.parseDouble(price);
+            price1 = Math.floor(price1 * 100) / 100; // truncate to 2 decimal places
+
+            System.out.println("Please confirm new game price: ");
+            price = in.readLine();
+            validPrice = validateDouble(price);
+            while (!validPrice) {
+               System.out.println("Invalid input");
+               System.out.println("Please confirm new game price: ");
+               price = in.readLine();
+               validPrice = validateDouble(price);
+            }
+            Double price2 = Double.parseDouble(price);
+            price2 = Math.floor(price2 * 100) / 100;
+
+            if (price1.equals(price2)) {
+               pricesMatch = true;
+
+               System.out.println("Updating game genre...");
+               String update = "UPDATE Catalog SET price = " + String.format("%.2f", price1) + " WHERE gameID = '" + gameID + "'";
+               esql.executeUpdate(update);
+
+               System.out.println("Game name changed successfully");
+               System.out.println("Price of " + gameID + " changed to " + String.format("%.2f", price1));
+            }
+            else {
+               System.out.println("Game prices do not match!");
+
+               // let user cancel
+               boolean validRetry = retryInput();
+               if (!validRetry) {
+                  System.out.println("Returning to Catalog Settings...");
+                  return;
+               }
+            }
+         }
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+   }
 //   public static void changeDescription(GameRental esql) {
 //      try {
 //
