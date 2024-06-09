@@ -367,9 +367,7 @@ public class GameRental {
          // validate username
          while (true) { // loop until username has not been taken
             if (user.length() <= 50) { // username <= 50 characters
-               String availableUser = "SELECT EXISTS (Select 1 FROM Users WHERE login = '" + user + "' LIMIT 1)";
-               List<List<String>> userResult = esql.executeQueryAndReturnResult(availableUser);
-               boolean userTaken = userResult.get(0).contains("t");
+               boolean userTaken = validateUser(esql, user);
                if (!userTaken) { // username is available to register
                   break;
                }
@@ -757,7 +755,7 @@ public class GameRental {
                case 3: changeFavoriteGames(esql, user); break;
                case 4: changeRole(esql, user); break;
                case 5: user = changeUsername(esql, user); break;
-               case 6: System.out.println("You have selected: Change Different User"); break;
+               case 6: user = changeDifferentUser(esql, user); break;
 
 
                case 9:
@@ -1034,9 +1032,7 @@ public class GameRental {
             String newUser1 = in.readLine();
             while(true) { // prompt user until valid username is entered
                if (newUser1.length() <= 50) {
-                  String availableUser = "SELECT EXISTS (Select 1 FROM Users WHERE login = '" + newUser1 + "' LIMIT 1)";
-                  List<List<String>> userResult = esql.executeQueryAndReturnResult(availableUser);
-                  boolean userTaken = userResult.get(0).contains("t");
+                  boolean userTaken = validateUser(esql, newUser1);
                   if (!userTaken) { // username is available to register
                      break;
                   }
@@ -1073,7 +1069,19 @@ public class GameRental {
    }
    public static String changeDifferentUser(GameRental esql, String user) {
       try{
-         System.out.println("You have selected: ");
+         System.out.println("You have selected: Change Different User");
+
+         System.out.println("Please enter new user to change: ");
+         String newUser = in.readLine();
+         boolean validUser = validateUser(esql, newUser);
+
+         while(!validUser) {
+            System.out.println("Invalid user");
+            System.out.println("Please enter new user to change: ");
+            newUser = in.readLine();
+            validUser = validateUser(esql, newUser);
+         }
+         return newUser;
 
       }catch(Exception e) {
          System.err.println(e.getMessage());
