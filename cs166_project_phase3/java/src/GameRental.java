@@ -296,7 +296,7 @@ public class GameRental {
                    case 8: viewTrackingInfo(esql); break;
                    case 9: updateTrackingInfo(esql); break;
                    case 10: updateCatalog(esql, authorisedUser); break;
-                   case 11: updateUser(esql); break;
+                   case 11: updateUser(esql, authorisedUser); break;
 
 
 
@@ -669,9 +669,9 @@ public class GameRental {
    public static void viewOrderInfo(GameRental esql) {}
    public static void viewTrackingInfo(GameRental esql) {}
    public static void updateTrackingInfo(GameRental esql) {}
-   public static void updateCatalog(GameRental esql, String user) {
+   public static void updateCatalog(GameRental esql, String manager) {
       try {
-         if (!checkUserRole(esql, user, "manager")) {
+         if (!checkUserRole(esql, manager, "manager")) {
             System.out.println("You are unauthorized to update the catalog");
             System.out.println("Returning to Main Menu...");
             return;
@@ -714,9 +714,59 @@ public class GameRental {
          System.err.println(e.getMessage());
       }
    }
-   public static void updateUser(GameRental esql) {
-      try {
+   public static void updateUser(GameRental esql, String manager) {
+      try{
+         if (!checkUserRole(esql, manager, "manager")) {
+            System.out.println("You are unauthorized to update other users");
+            System.out.println("Returning to Main Menu...");
+            return;
+         }
 
+         System.out.println("Please enter username of profile to change: ");
+         String user = in.readLine();
+         boolean validUser = validateUser(esql, user);
+         while(!validUser) {
+            System.out.println("Invalid user");
+            System.out.println("Please enter username of profile to change: ");
+            user = in.readLine();
+            validUser = validateUser(esql, user);
+         }
+
+
+         boolean updateMenu = true;
+         while (updateMenu) {
+            System.out.println(
+                    "\n\n*******************************************************\n" +
+                            "              Update User      	               \n" +
+                            "*******************************************************\n");
+
+            System.out.println("PROFILE SETTINGS");
+            System.out.println("----------------");
+
+            System.out.println("1. Change Password");
+            System.out.println("2. Change Phone Number");
+            System.out.println("3. Change Favorite Games");
+            System.out.println("4. Change Username");
+            System.out.println("5. Change User Role");
+            System.out.println("6. Change Different User");
+            System.out.println("9. Return to Main Menu");
+
+            switch (readChoice()) {
+               case 1: changePassword(esql, user); break;
+               case 2: changePhoneNumber(esql, user); break;
+               case 3: changeFavoriteGames(esql, user); break;
+//               case 4: changeUsername(esql, user); break;
+               case 5: changeRole(esql, user); break;
+               case 6: System.out.println("You have selected: Change Different User"); break;
+
+
+               case 9:
+                  updateMenu = false; break;
+
+               default:
+                  System.out.println("Unrecognized choice!");
+            }
+         }
       }catch(Exception e) {
          System.err.println(e.getMessage());
       }
@@ -753,6 +803,16 @@ public class GameRental {
             return false;
          }
          return false;
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+      return false;
+   }
+   public static boolean validateUser(GameRental esql, String user) {
+      try{
+         String query = "SELECT EXISTS(SELECT login FROM Users WHERE login = '" + user + "' LIMIT 1)";
+         List<List<String>> result = esql.executeQueryAndReturnResult(query);
+         return result.get(0).get(0).contains("t");
       }catch(Exception e) {
          System.err.println(e.getMessage());
       }
@@ -932,6 +992,37 @@ public class GameRental {
 
          System.out.println("Favorite games changed successfully");
          System.out.println("Favorite Games: " + games);
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+   }
+   public static void changeUsername(GameRental esql, String user) {
+
+   }
+   public static void changeRole(GameRental esql, String user) {
+      try{
+         System.out.println("You have selected: Change User Role\n");
+
+         String newRole = null;
+         System.out.println("USER ROLES");
+         System.out.println("----------");
+         System.out.println("1. Customer");
+         System.out.println("2. Employee");
+         System.out.println("3. Manager");
+         System.out.println("4. Cancel Change");
+
+         switch(readChoice()) {
+            case 1: newRole = "customer"; break;
+            case 2: newRole = "employee"; break;
+            case 3: newRole = "manager"; break;
+            case 4: System.out.println("Returning to Profile Settings..."); return;
+
+            default: System.out.println("Unrecognized choice!");
+         }
+         String update = "UPDATE Users SET role = '" + newRole + "' WHERE login = '" + user + "'";
+         esql.executeUpdate(update);
+         System.out.println("Successfully changed role of " + user);
+         System.out.println("Role changed to " + newRole);
       }catch(Exception e) {
          System.err.println(e.getMessage());
       }
