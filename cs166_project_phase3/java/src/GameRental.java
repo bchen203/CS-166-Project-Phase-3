@@ -374,8 +374,8 @@ public class GameRental {
                   break;
                }
             }
-            System.out.println("Invalid Username");
-            System.out.println("Please enter you username: ");
+            System.out.println("Invalid username");
+            System.out.println("Please enter your username: ");
             user = in.readLine();
          }
 
@@ -721,10 +721,10 @@ public class GameRental {
             System.out.println("Returning to Main Menu...");
             return;
          }
-
+         System.out.println("Username should not match current user");
          System.out.println("Please enter username of profile to change: ");
          String user = in.readLine();
-         boolean validUser = validateUser(esql, user);
+         boolean validUser = validateUser(esql, user) && !user.equals(manager);
          while(!validUser) {
             System.out.println("Invalid user");
             System.out.println("Please enter username of profile to change: ");
@@ -746,8 +746,8 @@ public class GameRental {
             System.out.println("1. Change Password");
             System.out.println("2. Change Phone Number");
             System.out.println("3. Change Favorite Games");
-            System.out.println("4. Change Username");
-            System.out.println("5. Change User Role");
+            System.out.println("4. Change User Role");
+            System.out.println("5. Change Username");
             System.out.println("6. Change Different User");
             System.out.println("9. Return to Main Menu");
 
@@ -755,8 +755,8 @@ public class GameRental {
                case 1: changePassword(esql, user); break;
                case 2: changePhoneNumber(esql, user); break;
                case 3: changeFavoriteGames(esql, user); break;
-//               case 4: changeUsername(esql, user); break;
-               case 5: changeRole(esql, user); break;
+               case 4: changeRole(esql, user); break;
+               case 5: user = changeUsername(esql, user); break;
                case 6: System.out.println("You have selected: Change Different User"); break;
 
 
@@ -810,7 +810,7 @@ public class GameRental {
    }
    public static boolean validateUser(GameRental esql, String user) {
       try{
-         String query = "SELECT EXISTS(SELECT login FROM Users WHERE login = '" + user + "' LIMIT 1)";
+         String query = "SELECT EXISTS (SELECT 1 FROM Users WHERE login = '" + user + "' LIMIT 1)";
          List<List<String>> result = esql.executeQueryAndReturnResult(query);
          return result.get(0).get(0).contains("t");
       }catch(Exception e) {
@@ -996,9 +996,6 @@ public class GameRental {
          System.err.println(e.getMessage());
       }
    }
-   public static void changeUsername(GameRental esql, String user) {
-
-   }
    public static void changeRole(GameRental esql, String user) {
       try{
          System.out.println("You have selected: Change User Role\n");
@@ -1026,6 +1023,62 @@ public class GameRental {
       }catch(Exception e) {
          System.err.println(e.getMessage());
       }
+   }
+   public static String changeUsername(GameRental esql, String user) {
+      try {
+         System.out.println("You have selected: Change Username");
+
+         while(true) {
+            System.out.println("Usernames should be no longer than 50 characters");
+            System.out.println("Please enter new username: ");
+            String newUser1 = in.readLine();
+            while(true) { // prompt user until valid username is entered
+               if (newUser1.length() <= 50) {
+                  String availableUser = "SELECT EXISTS (Select 1 FROM Users WHERE login = '" + newUser1 + "' LIMIT 1)";
+                  List<List<String>> userResult = esql.executeQueryAndReturnResult(availableUser);
+                  boolean userTaken = userResult.get(0).contains("t");
+                  if (!userTaken) { // username is available to register
+                     break;
+                  }
+               }
+               System.out.println("Invalid username");
+
+               System.out.println("Please enter new username: ");
+               newUser1 = in.readLine();
+            }
+
+            System.out.println("Please confirm new username: ");
+            String newUser2 = in.readLine();
+
+            if (newUser1.equals(newUser2)) {
+               String update = "UPDATE Users SET login = '" + newUser1 + "' WHERE login = '" + user + "'";
+               esql.executeUpdate(update);
+               System.out.println("Successfully changed username");
+               System.out.println("Username changed from " + user + " to " + newUser1);
+               return newUser1;
+            }
+            else {
+               System.out.println("Usernames do not match");
+               boolean validRetry = retryInput();
+               if (!validRetry) {
+                  System.out.println();
+                  return user;
+               }
+            }
+         }
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+      return user;
+   }
+   public static String changeDifferentUser(GameRental esql, String user) {
+      try{
+         System.out.println("You have selected: ");
+
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+      return user;
    }
 
    // functions for changing catalog filters
@@ -1092,6 +1145,7 @@ public class GameRental {
       }
       return null;
    }
+
    public static String changeSort(String sort){
       try{
          if (sort.equals("DESC")) {
@@ -1107,7 +1161,6 @@ public class GameRental {
       }
       return null;
    }
-
    // functions for creating rental order and tracking info
    public static String createOrderID (GameRental esql) {
       try {
@@ -1121,6 +1174,7 @@ public class GameRental {
       }
       return null;
    }
+
    public static String createTrackingID (GameRental esql) {
       try {
          String query = "SELECT trackingID FROM TrackingInfo ORDER BY trackingID DESC LIMIT 1";
@@ -1133,7 +1187,6 @@ public class GameRental {
       }
       return null;
    }
-
    // functions for editing catalog
    public static boolean checkUserRole(GameRental esql, String user, String role) {
       try {
