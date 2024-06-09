@@ -387,7 +387,7 @@ public class GameRental {
 
          // validate password
          while (password.length() >= 30) {
-            System.out.println("\nInvalid Password");
+            System.out.println("\nInvalid password");
             System.out.println("Please enter your password: ");
             password = in.readLine();
          }
@@ -401,7 +401,7 @@ public class GameRental {
          boolean validPN = validatePhoneNumber(phone);
 
          while(!validPN) {
-            System.out.println("\nInvalid Phone Number");
+            System.out.println("\nInvalid phone number");
             System.out.println("Please enter your phone number: ");
             phone = in.readLine();
 
@@ -692,8 +692,9 @@ public class GameRental {
             System.out.println("2. Change Genre");
             System.out.println("3. Change Price");
             System.out.println("4. Change Description");
-            System.out.println("5. Change Image");
-            System.out.println("6. Add New Game");
+            System.out.println("5. Change Image URL");
+            System.out.println("6. Add Game to Catalog");
+            System.out.println("7. Remove Game from Catalog");
             System.out.println("9. Return to Main Menu");
 
 
@@ -701,9 +702,9 @@ public class GameRental {
                case 1: changeGameName(esql); break;
                case 2: changeGenre(esql); break;
                case 3: changePrice(esql); break;
-//               case 4:;
-//               case 5:;
-//               case 6:;
+               case 4: changeDescription(esql); break;
+               case 5: changeImage(esql); break;
+               case 6: addGame(esql); break;
 
                case 9: updateCatalog = false; break;
                default: System.out.println("Unrecognized choice!");
@@ -1022,6 +1023,7 @@ public class GameRental {
       return null;
    }
 
+
    public static boolean checkUserRole(GameRental esql, String user, String role) {
       try {
          String query = "SELECT EXISTS(SELECT 1 FROM Users WHERE login = '" + user + "' AND role = '" + role + "')";
@@ -1144,7 +1146,7 @@ public class GameRental {
             String price = in.readLine();
             boolean validPrice = validateDouble(price);
             while (!validPrice) {
-               System.out.println("Invalid input");
+               System.out.println("Invalid price");
                System.out.println("Please enter new game price: ");
                price = in.readLine();
                validPrice = validateDouble(price);
@@ -1156,7 +1158,7 @@ public class GameRental {
             price = in.readLine();
             validPrice = validateDouble(price);
             while (!validPrice) {
-               System.out.println("Invalid input");
+               System.out.println("Invalid price");
                System.out.println("Please confirm new game price: ");
                price = in.readLine();
                validPrice = validateDouble(price);
@@ -1189,12 +1191,123 @@ public class GameRental {
          System.err.println(e.getMessage());
       }
    }
-//   public static void changeDescription(GameRental esql) {
-//      try {
-//
-//      }catch(Exception e) {
-//         System.err.println(e.getMessage());
-//      }
-//   }
+   public static void changeDescription(GameRental esql) {
+      try {
+         System.out.println("You have selected: Change Description");
+
+         String gameID = inputGameID(esql);
+
+         System.out.println("Please enter game platform: ");
+         String platform = "Platform: " + in.readLine();
+         System.out.println("Please enter game publisher: ");
+         String publisher = "Publisher: "+ in.readLine();
+         String update = "UPDATE Catalog SET description = '" + platform + "; "+ publisher + "' WHERE gameID = '" + gameID + "'";
+         esql.executeUpdate(update);
+
+         System.out.println("Successfully changed description");
+         System.out.println("Description changed to:\n" + platform + "\n" + publisher);
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+   }
+   public static void changeImage(GameRental esql) {
+      try {
+         System.out.println("You have selected: Change Image URL");
+
+         String gameID = inputGameID(esql);
+
+         System.out.println("Please enter image url: ");
+         String url = in.readLine();
+         String update = "UPDATE Catalog SET imageURL = '" + url + "' WHERE gameID = '" + gameID + "'";
+         esql.executeUpdate(update);
+
+         System.out.println("Successfully changed description");
+         System.out.println("Image url changed to: " + url);
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+   }
+   public static void addGame(GameRental esql) {
+      try{
+         System.out.println("You have selected: Add Game to Catalog");
+
+         System.out.println("Please enter game name: ");
+         String name = in.readLine();
+
+         System.out.println("Please enter game genre: ");
+         String genre = in.readLine();
+
+         System.out.println("Please enter game price: ");
+         String priceStr = in.readLine();
+         boolean validPrice = validateDouble(priceStr);
+         while(!validPrice) {
+            System.out.println("Invalid price");
+            System.out.println("Please enter game price: ");
+            priceStr = in.readLine();
+            validPrice = validateDouble(priceStr);
+         }
+         Double price = Double.parseDouble(priceStr);
+         price = Math.floor(price * 100) / 100; // truncate price to 2 decimal places
+
+         System.out.println("Please enter game platform: ");
+         String platform = "Platform: " + in.readLine();
+         System.out.println("Please enter game publisher: ");
+         String publisher = "Publisher: "+ in.readLine();
+
+         System.out.println("Please enter image url: ");
+         String url = in.readLine();
+
+         System.out.println("Summary of new game");
+         System.out.println("Name: " + name);
+         System.out.println("Genre: " + genre);
+         System.out.println("Price: " + String.format("%.2f", price));
+         System.out.println("Description: " + platform + "; " + publisher);
+         System.out.println("Image URL: " + url);
+
+         boolean validConfirm = false;
+         while(!validConfirm) {
+            System.out.println("Please confirm new game (y/n): ");
+            String confirm = in.readLine();
+            switch (confirm) {
+               case "y": validConfirm = true; break;
+               case "n": System.out.println("Addition to catalog cancelled\nReturning to Catalog Settings..."); return;
+
+               default: System.out.println("Invalid input");
+            }
+         }
+
+         String gameID = createGameID(esql);
+
+         String update = "INSERT INTO Catalog VALUES('" +
+                 gameID + "', '" +
+                 name + "', '" +
+                 genre + "', " +
+                 String.format("%.2f", price) + ", '" +
+                 platform + "; " + publisher + "', '" +
+                 url + "')";
+         System.out.println(update);
+         esql.executeUpdate(update);
+
+         System.out.println("Successfully added game to catalog");
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+   }
+
+   public static String createGameID(GameRental esql) {
+      try{
+         String query = "SELECT gameID FROM Catalog ORDER BY gameID DESC LIMIT 1";
+         List<List<String>> IDResult = esql.executeQueryAndReturnResult(query);
+         String maxID = IDResult.get(0).get(0).substring(4); // retrieve id of latest game
+         int nextID = Integer.parseInt(maxID) + 1;
+         if (nextID < 1000) {
+            return "game0" + nextID;
+         }
+         return "game" + nextID;
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+      return null;
+   }
 }//end GameRental
 
