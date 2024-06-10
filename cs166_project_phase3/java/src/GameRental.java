@@ -561,16 +561,9 @@ public class GameRental {
          // retrieve gameIDs and number of copies for rental order
          List<String> gameIDs = new ArrayList<>();
          List<Integer> numCopies = new ArrayList<>();
+         String gameID = "";
          for (int i = 0; i < numGames; i++) {
-            System.out.println("Please enter gameID: ");
-            String gameID = in.readLine();
-            boolean validGame = validateGameID(esql, gameID);
-            while(!validGame) {
-               System.out.println("Invalid gameID");
-               System.out.println("Please enter gameID: ");
-               gameID = in.readLine();
-               validGame = validateGameID(esql, gameID);
-            }
+            gameID = inputGameID(esql);
             gameIDs.add(gameID);
             System.out.println("Please enter number of copies: ");
             String copies = in.readLine();
@@ -688,12 +681,12 @@ public class GameRental {
    public static void viewOrderInfo(GameRental esql, String user) {
       try{
          System.out.println("You have selected: View Rental Order Information");
-         System.out.println("Please enter rental order id: ");
+         System.out.println("Please enter rental order id (gamerentalorder0000): ");
          String rentalOrderID = in.readLine();
          boolean validRental = validateRentalID(esql, rentalOrderID, user);
          while(!validRental) {
             System.out.println("Invalid rental order id");
-            System.out.println("Please enter rental order id: ");
+            System.out.println("Please enter rental order id (gamerentalorder0000): ");
             rentalOrderID = in.readLine();
             validRental = validateRentalID(esql, rentalOrderID, user);
          }
@@ -722,12 +715,12 @@ public class GameRental {
    public static void viewTrackingInfo(GameRental esql, String user) {
       try{
          System.out.println("You have selected: View Tracking Information");
-         System.out.println("Please enter tracking id: ");
+         System.out.println("Please enter tracking id (trackingid0000): ");
          String trackingID = in.readLine();
          boolean validTracking = validateTrackingID(esql, trackingID);
          while (!validTracking) {
             System.out.println("Invalid tracking id");
-            System.out.println("Please enter tracking id: ");
+            System.out.println("Please enter tracking id (trackingid0000): ");
             trackingID = in.readLine();
             validTracking = validateTrackingID(esql, trackingID);
          }
@@ -755,12 +748,12 @@ public class GameRental {
             System.out.println("Returning to Main Menu...");
             return;
          }
-         System.out.println("Please enter tracking id: ");
+         System.out.println("Please enter tracking id (trackingid0000): ");
          String trackingID = in.readLine();
          boolean validTracking = validateTrackingID(esql, trackingID);
          while(!validTracking) {
             System.out.println("Invalid tracking id");
-            System.out.println("Please enter tracking id: ");
+            System.out.println("Please enter tracking id (trackingid0000): ");
             trackingID = in.readLine();
             validTracking = validateTrackingID(esql, trackingID);
          }
