@@ -698,12 +698,21 @@ public class GameRental {
             validRental = validateRentalID(esql, rentalOrderID, user);
          }
 
-         System.out.println("Retrieving Order Details");
+         System.out.println("Retrieving Order Details...\n");
          String orderDet = "SELECT r.orderTimestamp, r.dueDate, r.totalPrice, t.trackingID, g.gameID, g.unitsOrdered " +
                  "FROM RentalOrder r, GamesInOrder g, TrackingInfo t " +
                  "WHERE r.rentalOrderID = t.rentalOrderID AND r.rentalOrderID = g.rentalOrderID AND " +
                  "r.rentalOrderID = '" + rentalOrderID + "' AND r.login = '" +  user  + "'";
-         esql.executeQueryAndPrintResult(orderDet);
+         List<List<String>> result = esql.executeQueryAndReturnResult(orderDet);
+         System.out.println("Order timestamp: " + result.get(0).get(0));
+         System.out.println("Due date: " + result.get(0).get(1));
+         System.out.println("Total Price: $" + result.get(0).get(2));
+         System.out.println("Tracking id: " + result.get(0).get(3));
+         System.out.println("gameID  \tNumCopies");
+
+         for(List<String> orders: result) {
+            System.out.println(orders.get(4) + "\t    " + orders.get(5));
+         }
          System.out.println("\n");
       }
       catch(Exception e) {
