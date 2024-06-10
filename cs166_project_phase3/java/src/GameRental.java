@@ -608,7 +608,7 @@ public class GameRental {
             String confirm = in.readLine();
             switch (confirm) {
                case "y": validConfirm = true; break;
-               case "n": System.out.println("Order canceled\nReturning to Main Menu..."); return;
+               case "n": System.out.println("Order canceled\nReturning to Main Menu...\n"); return;
 
                default: System.out.println("Invalid input");
             }
@@ -743,9 +743,10 @@ public class GameRental {
    }
    public static void updateTrackingInfo(GameRental esql, String employee) {
       try{
+         System.out.println("You have selected: Update Tracking Information");
          if (checkUserRole(esql, employee, "customer")) {
             System.out.println("You are unauthorized to update tracking information");
-            System.out.println("Returning to Main Menu...");
+            System.out.println("Returning to Main Menu...\n");
             return;
          }
          System.out.println("Please enter tracking id (trackingid0000): ");
@@ -782,7 +783,7 @@ public class GameRental {
       try {
          if (!checkUserRole(esql, manager, "manager")) {
             System.out.println("You are unauthorized to update the catalog");
-            System.out.println("Returning to Main Menu...");
+            System.out.println("Returning to Main Menu...\n");
             return;
          }
 
@@ -827,7 +828,7 @@ public class GameRental {
       try{
          if (!checkUserRole(esql, manager, "manager")) {
             System.out.println("You are unauthorized to update other users");
-            System.out.println("Returning to Main Menu...");
+            System.out.println("Returning to Main Menu...\n");
             return;
          }
          System.out.println("Username should not match current user");
@@ -1043,7 +1044,7 @@ public class GameRental {
                // let user cancel
                boolean validRetry = retryInput();
                if (!validRetry) {
-                  System.out.println("Returning to Profile Settings...");
+                  System.out.println("Returning to Profile Settings...\n");
                   return;
                }
             }
@@ -1096,7 +1097,7 @@ public class GameRental {
                // let user cancel
                boolean validRetry = retryInput();
                if (!validRetry) {
-                  System.out.println("Returning to Profile Settings...");
+                  System.out.println("Returning to Profile Settings...\n");
                   return;
                }
             }
@@ -1155,7 +1156,7 @@ public class GameRental {
             case 1: newRole = "customer"; break;
             case 2: newRole = "employee"; break;
             case 3: newRole = "manager"; break;
-            case 4: System.out.println("Returning to Profile Settings..."); return;
+            case 4: System.out.println("Returning to Profile Settings...\n"); return;
 
             default: System.out.println("Unrecognized choice!");
          }
@@ -1270,7 +1271,7 @@ public class GameRental {
          System.out.println("Only 1 genre can be viewed at a time.");
          System.out.println("Please enter genre: ");
          String genre = in.readLine();
-         System.out.println("Returning to Catalog Options...");
+         System.out.println("Returning to Catalog Options...\n");
 
          return genre;
       }catch(Exception e) {
@@ -1290,7 +1291,7 @@ public class GameRental {
             validPrice = validateDouble(priceStr);
          }
          Double price = Double.parseDouble(priceStr);
-         System.out.println("Returning to Catalog Options...");
+         System.out.println("Returning to Catalog Options...\n");
 
          return price;
       }catch(Exception e) {
@@ -1298,7 +1299,6 @@ public class GameRental {
       }
       return null;
    }
-
    public static String changeSort(String sort){
       try{
          if (sort.equals("DESC")) {
@@ -1314,6 +1314,7 @@ public class GameRental {
       }
       return null;
    }
+
    // functions for creating rental order and tracking info
    public static String createOrderID (GameRental esql) {
       try {
@@ -1327,7 +1328,6 @@ public class GameRental {
       }
       return null;
    }
-
    public static String createTrackingID (GameRental esql) {
       try {
          String query = "SELECT trackingID FROM TrackingInfo ORDER BY trackingID DESC LIMIT 1";
@@ -1400,7 +1400,7 @@ public class GameRental {
                // let user cancel
                boolean validRetry = retryInput();
                if (!validRetry) {
-                  System.out.println("Returning to Catalog Settings...");
+                  System.out.println("Returning to Catalog Settings...\n");
                   return;
                }
             }
@@ -1439,7 +1439,7 @@ public class GameRental {
                // let user cancel
                boolean validRetry = retryInput();
                if (!validRetry) {
-                  System.out.println("Returning to Catalog Settings...");
+                  System.out.println("Returning to Catalog Settings...\n");
                   return;
                }
             }
@@ -1496,7 +1496,7 @@ public class GameRental {
                // let user cancel
                boolean validRetry = retryInput();
                if (!validRetry) {
-                  System.out.println("Returning to Catalog Settings...");
+                  System.out.println("Returning to Catalog Settings...\n");
                   return;
                }
             }
@@ -1584,7 +1584,7 @@ public class GameRental {
             String confirm = in.readLine();
             switch (confirm) {
                case "y": validConfirm = true; break;
-               case "n": System.out.println("Addition to catalog cancelled\nReturning to Catalog Settings..."); return;
+               case "n": System.out.println("Addition to catalog cancelled\nReturning to Catalog Settings...\n"); return;
 
                default: System.out.println("Invalid input");
             }
@@ -1634,7 +1634,7 @@ public class GameRental {
             String confirm = in.readLine();
             switch (confirm) {
                case "y": validConfirm = true; break;
-               case "n": System.out.println("Removal from catalog cancelled\nReturning to Catalog Settings..."); return;
+               case "n": System.out.println("Removal from catalog cancelled\nReturning to Catalog Settings...\n"); return;
 
                default: System.out.println("Invalid input");
             }
@@ -1644,7 +1644,7 @@ public class GameRental {
          esql.executeUpdate(update);
 
          System.out.println("Successfully removed " + gameID + "from catalog");
-         System.out.println("Returning to Catalog Settings...");
+         System.out.println("Returning to Catalog Settings...\n");
 
       }catch(Exception e) {
          System.err.println(e.getMessage());
