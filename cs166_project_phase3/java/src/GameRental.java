@@ -294,7 +294,7 @@ public class GameRental {
                    case 6: viewRecentOrders(esql, authorisedUser); break;
                    case 7: viewOrderInfo(esql, authorisedUser); break;
                    case 8: viewTrackingInfo(esql, authorisedUser); break;
-                   case 9: updateTrackingInfo(esql); break;
+                   case 9: updateTrackingInfo(esql, authorisedUser); break;
                    case 10: updateCatalog(esql, authorisedUser); break;
                    case 11: updateUser(esql, authorisedUser); break;
 
@@ -698,7 +698,7 @@ public class GameRental {
             validRental = validateRentalID(esql, rentalOrderID, user);
          }
 
-         System.out.println("Retrieving Order Details...\n");
+         System.out.println("Retrieving order details...\n");
          String orderDet = "SELECT r.orderTimestamp, r.dueDate, r.totalPrice, t.trackingID, g.gameID, g.unitsOrdered " +
                  "FROM RentalOrder r, GamesInOrder g, TrackingInfo t " +
                  "WHERE r.rentalOrderID = t.rentalOrderID AND r.rentalOrderID = g.rentalOrderID AND " +
@@ -721,27 +721,65 @@ public class GameRental {
    }
    public static void viewTrackingInfo(GameRental esql, String user) {
       try{
-//         System.out.println("Getting Tracking Information");
-//         String trackInfo = "SELECT courierName, rentalOrderID, currentLocation, status, lastUpdateDate, additionalComments "  +
-//                 "FROM TrackingInfo "  +
-//                 "WHERE trackingID = ? AND rentalOrderID IN (SELECT rentalOrderID FROM RentalOrder WHERE user = '" + user + "'";
-//         esql.executeQueryAndPrintResult(trackInfo);
+         System.out.println("You have selected: View Tracking Information");
+         System.out.println("Please enter tracking id: ");
+         String trackingID = in.readLine();
+         boolean validTracking = validateTrackingID(esql, trackingID);
+         while (!validTracking) {
+            System.out.println("Invalid tracking id");
+            System.out.println("Please enter tracking id: ");
+            trackingID = in.readLine();
+            validTracking = validateTrackingID(esql, trackingID);
+         }
+
+         System.out.println("Retrieving tracking details...\n");
+         String trackInfo = "SELECT courierName, rentalOrderID, currentLocation, status, lastUpdateDate, additionalComments "  +
+                 "FROM TrackingInfo "  +
+                 "WHERE trackingID = '" + trackingID + "' AND rentalOrderID IN (SELECT rentalOrderID FROM RentalOrder WHERE login = '" + user + "')";
+         List<List<String>> result = esql.executeQueryAndReturnResult(trackInfo);
+         System.out.println("Courier name: " + result.get(0).get(0));
+         System.out.println("Rental order id: " + result.get(0).get(1));
+         System.out.println("Current location: " + result.get(0).get(2));
+         System.out.println("Status: " + result.get(0).get(3));
+         System.out.println("Last update date: " + result.get(0).get(4));
+         System.out.println("Additional comments: " + result.get(0).get(5) + "\n");
       }
       catch(Exception e) {
          System.err.println(e.getMessage());
       }
    }
-   public static void updateTrackingInfo(GameRental esql) {
+   public static void updateTrackingInfo(GameRental esql, String employee) {
       try{
-//         String status = "";
-//         String currentLocation = "";
-//         String courierName = "";
-//         String additionalComments = "";
-//         System.out.println("Updating Tracking Info");
-//         String updateInfo = "UPDATE TrackingInfo "  +
-//                 "SET status = " + status + ", currentLocation = " + currentLocation + ", courierName = " + courierName + ", additionalComments = " + additionalComments + ", lastUpdateDate = NOW() "  +
-//                 "WHERE trackingID = ? ";
-//         esql.executeQueryAndPrintResult(updateInfo);
+         if (checkUserRole(esql, employee, "customer")) {
+            System.out.println("You are unauthorized to update tracking information");
+            System.out.println("Returning to Main Menu...");
+            return;
+         }
+         System.out.println("Please enter tracking id: ");
+         String trackingID = in.readLine();
+         boolean validTracking = validateTrackingID(esql, trackingID);
+         while(!validTracking) {
+            System.out.println("Invalid tracking id");
+            System.out.println("Please enter tracking id: ");
+            trackingID = in.readLine();
+            validTracking = validateTrackingID(esql, trackingID);
+         }
+         System.out.println("Please enter status: ");
+         String status = in.readLine();
+         System.out.println("Please enter current location: ");
+         String currentLocation = in.readLine();
+         System.out.println("Please enter courier name: ");
+         String courierName = in.readLine();
+         System.out.println("Please enter additional comments: ");
+         String additionalComments = in.readLine();
+         System.out.println("Updating Tracking Info");
+         DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+         String updateTS = f.format(LocalDateTime.now());
+         String updateInfo = "UPDATE TrackingInfo "  +
+                 "SET status = '" + status + "', currentLocation = '" + currentLocation + "', courierName = '" + courierName + "', additionalComments = '" + additionalComments + "', lastUpdateDate = '" + updateTS + "' " +
+                 "WHERE trackingID = '" + trackingID + "'";
+         esql.executeUpdate(updateInfo);
+         System.out.println("Successfully updated tracking information of " + trackingID);
       }
       catch(Exception e) {
          System.err.println(e.getMessage());
@@ -892,6 +930,23 @@ public class GameRental {
             if (rentalOrderID.startsWith("gamerentalorder")) {
                // check if gameID exists in catalog
                String availableUser = "SELECT EXISTS (Select 1 FROM RentalOrder WHERE rentalOrderID = '" + rentalOrderID + "' AND login = '" + user + "' LIMIT 1)";
+               List<List<String>> gameResult = esql.executeQueryAndReturnResult(availableUser);
+               return gameResult.get(0).contains("t"); // true if gameID found in database
+            }
+            return false;
+         }
+         return false;
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+      return false;
+   }
+   public static boolean validateTrackingID(GameRental esql, String trackingID) {
+      try{
+         if (trackingID.length() == 14) {
+            if (trackingID.startsWith("trackingid")) {
+               // check if gameID exists in catalog
+               String availableUser = "SELECT EXISTS (Select 1 FROM TrackingInfo WHERE trackingID = '" + trackingID + "' LIMIT 1)";
                List<List<String>> gameResult = esql.executeQueryAndReturnResult(availableUser);
                return gameResult.get(0).contains("t"); // true if gameID found in database
             }
