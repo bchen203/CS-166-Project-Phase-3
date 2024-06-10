@@ -290,10 +290,10 @@ public class GameRental {
                    case 2: updateProfile(esql, authorisedUser); break;
                    case 3: viewCatalog(esql); break;
                    case 4: placeOrder(esql, authorisedUser); break;
-                   case 5: viewAllOrders(esql); break;
-                   case 6: viewRecentOrders(esql); break;
-                   case 7: viewOrderInfo(esql); break;
-                   case 8: viewTrackingInfo(esql); break;
+                   case 5: viewAllOrders(esql, authorisedUser); break;
+                   case 6: viewRecentOrders(esql, authorisedUser); break;
+                   case 7: viewOrderInfo(esql, authorisedUser); break;
+                   case 8: viewTrackingInfo(esql, authorisedUser); break;
                    case 9: updateTrackingInfo(esql); break;
                    case 10: updateCatalog(esql, authorisedUser); break;
                    case 11: updateUser(esql, authorisedUser); break;
@@ -662,11 +662,82 @@ public class GameRental {
          System.err.println(e.getMessage());
       }
    }
-   public static void viewAllOrders(GameRental esql) {}
-   public static void viewRecentOrders(GameRental esql) {}
-   public static void viewOrderInfo(GameRental esql) {}
-   public static void viewTrackingInfo(GameRental esql) {}
-   public static void updateTrackingInfo(GameRental esql) {}
+   public static void viewAllOrders(GameRental esql, String user) {
+      try{
+         System.out.println("You have selected: View Full Rental Order History");
+         System.out.println("Retrieving all orders...\n");
+         String RentalHistory = "SELECT rentalOrderID FROM RentalOrder WHERE login = '" +  user  + "' ORDER BY orderTimestamp DESC";
+         esql.executeQueryAndPrintResult(RentalHistory);
+         System.out.println("\n");
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+   }
+   public static void viewRecentOrders(GameRental esql, String user) {
+      try{
+         System.out.println("You have selected: View Past 5 Rental Orders");
+         System.out.println("Retrieving Past 5 Orders...\n");
+         String recent5 = "SELECT rentalOrderID FROM RentalOrder WHERE login = '" + user + "' ORDER BY orderTimestamp DESC LIMIT 5";
+         esql.executeQueryAndPrintResult(recent5);
+         System.out.println("\n");
+      }
+      catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+   }
+   public static void viewOrderInfo(GameRental esql, String user) {
+      try{
+         System.out.println("You have selected: View Rental Order Information");
+         System.out.println("Please enter rental order id: ");
+         String rentalOrderID = in.readLine();
+         boolean validRental = validateRentalID(esql, rentalOrderID, user);
+         while(!validRental) {
+            System.out.println("Invalid rental order id");
+            System.out.println("Please enter rental order id: ");
+            rentalOrderID = in.readLine();
+            validRental = validateRentalID(esql, rentalOrderID, user);
+         }
+
+         System.out.println("Retrieving Order Details");
+         String orderDet = "SELECT r.orderTimestamp, r.dueDate, r.totalPrice, t.trackingID, g.gameID, g.unitsOrdered " +
+                 "FROM RentalOrder r, GamesInOrder g, TrackingInfo t " +
+                 "WHERE r.rentalOrderID = t.rentalOrderID AND r.rentalOrderID = g.rentalOrderID AND " +
+                 "r.rentalOrderID = '" + rentalOrderID + "' AND r.login = '" +  user  + "'";
+         esql.executeQueryAndPrintResult(orderDet);
+         System.out.println("\n");
+      }
+      catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+   }
+   public static void viewTrackingInfo(GameRental esql, String user) {
+      try{
+//         System.out.println("Getting Tracking Information");
+//         String trackInfo = "SELECT courierName, rentalOrderID, currentLocation, status, lastUpdateDate, additionalComments "  +
+//                 "FROM TrackingInfo "  +
+//                 "WHERE trackingID = ? AND rentalOrderID IN (SELECT rentalOrderID FROM RentalOrder WHERE user = '" + user + "'";
+//         esql.executeQueryAndPrintResult(trackInfo);
+      }
+      catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+   }
+   public static void updateTrackingInfo(GameRental esql) {
+      try{
+//         String status = "";
+//         String currentLocation = "";
+//         String courierName = "";
+//         String additionalComments = "";
+//         System.out.println("Updating Tracking Info");
+//         String updateInfo = "UPDATE TrackingInfo "  +
+//                 "SET status = " + status + ", currentLocation = " + currentLocation + ", courierName = " + courierName + ", additionalComments = " + additionalComments + ", lastUpdateDate = NOW() "  +
+//                 "WHERE trackingID = ? ";
+//         esql.executeQueryAndPrintResult(updateInfo);
+      }
+      catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+   }
    public static void updateCatalog(GameRental esql, String manager) {
       try {
          if (!checkUserRole(esql, manager, "manager")) {
@@ -795,6 +866,23 @@ public class GameRental {
             if (gameID.startsWith("game")) {
                // check if gameID exists in catalog
                String availableUser = "SELECT EXISTS (Select 1 FROM Catalog WHERE gameID = '" + gameID + "' LIMIT 1)";
+               List<List<String>> gameResult = esql.executeQueryAndReturnResult(availableUser);
+               return gameResult.get(0).contains("t"); // true if gameID found in database
+            }
+            return false;
+         }
+         return false;
+      }catch(Exception e) {
+         System.err.println(e.getMessage());
+      }
+      return false;
+   }
+   public static boolean validateRentalID (GameRental esql, String rentalOrderID, String user) {
+      try{
+         if (rentalOrderID.length() == 19) {
+            if (rentalOrderID.startsWith("gamerentalorder")) {
+               // check if gameID exists in catalog
+               String availableUser = "SELECT EXISTS (Select 1 FROM RentalOrder WHERE rentalOrderID = '" + rentalOrderID + "' AND login = '" + user + "' LIMIT 1)";
                List<List<String>> gameResult = esql.executeQueryAndReturnResult(availableUser);
                return gameResult.get(0).contains("t"); // true if gameID found in database
             }
