@@ -1599,7 +1599,6 @@ public class GameRental {
                  String.format("%.2f", price) + ", '" +
                  platform + "; " + publisher + "', '" +
                  url + "')";
-         System.out.println(update);
          esql.executeUpdate(update);
 
          System.out.println("Successfully added game to catalog");

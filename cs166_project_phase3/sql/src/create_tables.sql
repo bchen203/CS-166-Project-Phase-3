@@ -31,6 +31,7 @@ CREATE TABLE RentalOrder ( rentalOrderID varchar(50) NOT NULL,
                            PRIMARY KEY(rentalOrderID),
                            FOREIGN KEY(login) REFERENCES Users(login)
                            ON DELETE CASCADE
+                           -- Allow for login to be updated by managers
                            ON UPDATE CASCADE
 );
 
