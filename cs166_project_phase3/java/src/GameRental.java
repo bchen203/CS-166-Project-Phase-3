@@ -385,13 +385,13 @@ public class GameRental {
 
          // validate password
          while (password.length() >= 30) {
-            System.out.println("\nInvalid password");
+            System.out.println("Invalid password");
             System.out.println("Please enter your password: ");
             password = in.readLine();
          }
 
          // Phone Number
-         System.out.println("\nContact Information");
+         System.out.println("Contact Information");
          System.out.println("Please enter your phone number (123-456-7890): ");
          String phone = in.readLine();
 
@@ -399,7 +399,7 @@ public class GameRental {
          boolean validPN = validatePhoneNumber(phone);
 
          while(!validPN) {
-            System.out.println("\nInvalid phone number");
+            System.out.println("Invalid phone number");
             System.out.println("Please enter your phone number: ");
             phone = in.readLine();
 
